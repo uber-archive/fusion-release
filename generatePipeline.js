@@ -1,3 +1,4 @@
+/* eslint-env node */
 const fs = require('fs');
 const shelljs = require('shelljs');
 const withEachRepo = require('fusion-orchestrate/src/utils/withEachRepo.js');
@@ -31,6 +32,7 @@ const withEachRepo = require('fusion-orchestrate/src/utils/withEachRepo.js');
 
   fs.writeFileSync(__dirname + '/steps.json', JSON.stringify(testSteps));
 
+  // eslint-disable-next-line no-console
   console.log('Initializing lerna monorepo and uploading pipeline.');
   shelljs.exec(`
       buildkite-agent pipeline upload steps.json

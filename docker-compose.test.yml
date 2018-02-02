@@ -1,0 +1,6 @@
+version: '2'
+services:
+  fusion-release-test:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
