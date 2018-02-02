@@ -14,7 +14,7 @@ const withEachRepo = require('fusion-orchestrate/src/utils/withEachRepo.js');
 
     shelljs.exec(`
       cd packages &&
-      git clone --depth 1 git@github.com:${repo.upstream}/${repo.name}.git
+      git clone --depth 1 https://github.com/${repo.upstream}/${repo.name}.git
     `);
 
     testSteps.push({
@@ -22,6 +22,11 @@ const withEachRepo = require('fusion-orchestrate/src/utils/withEachRepo.js');
       command: `cd ${repo.name} && yarn test`,
       agent: {
         queue: 'workers',
+      },
+      plugins: {
+        'docker-compose#v1.5.2': {
+          run: 'fusion-release',
+        },
       },
     });
   });
