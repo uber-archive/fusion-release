@@ -16,217 +16,217 @@ steps:
   #   agents:
   #     queue: workers
   - name: "fusion-plugin-i18n-react test"
-    command: "cd packages/fusion-plugin-i18n-react && yarn test"
+    command: ./node_modules/.bin/lerna run --scope fusion-plugin-i18n-react test"
     agents:
       queue: workers
     plugins:
       "docker-compose#v1.5.2":
         run: "fusion-release"
   - name: "fusion-plugin-universal-logger test"
-    command: "cd packages/fusion-plugin-universal-logger && yarn test"
+    command: ./node_modules/.bin/lerna run --scope fusion-plugin-universal-logger test"
     agents:
       queue: workers
     plugins:
       "docker-compose#v1.5.2":
         run: "fusion-release"
   - name: "fusion-plugin-universal-events-react test"
-    command: "cd packages/fusion-plugin-universal-events-react && yarn test"
+    command: ./node_modules/.bin/lerna run --scope fusion-plugin-universal-events-react test"
     agents:
       queue: workers
     plugins:
       "docker-compose#v1.5.2":
         run: "fusion-release"
   - name: "fusion-plugin-universal-events test"
-    command: "cd packages/fusion-plugin-universal-events && yarn test"
+    command: ./node_modules/.bin/lerna run --scope fusion-plugin-universal-events test"
     agents:
       queue: workers
     plugins:
       "docker-compose#v1.5.2":
         run: "fusion-release"
   - name: "fusion-test-utils test"
-    command: "cd packages/fusion-test-utils && yarn test"
+    command: ./node_modules/.bin/lerna run --scope fusion-test-utils test"
     agents:
       queue: workers
     plugins:
       "docker-compose#v1.5.2":
         run: "fusion-release"
   - name: "fusion-plugin-service-worker test"
-    command: "cd packages/fusion-plugin-service-worker && yarn test"
+    command: ./node_modules/.bin/lerna run --scope fusion-plugin-service-worker test"
     agents:
       queue: workers
     plugins:
       "docker-compose#v1.5.2":
         run: "fusion-release"
   - name: "fusion-plugin-styletron-react test"
-    command: "cd packages/fusion-plugin-styletron-react && yarn test"
+    command: ./node_modules/.bin/lerna run --scope fusion-plugin-styletron-react test"
     agents:
       queue: workers
     plugins:
       "docker-compose#v1.5.2":
         run: "fusion-release"
   - name: "fusion-plugin-rpc-redux-react test"
-    command: "cd packages/fusion-plugin-rpc-redux-react && yarn test"
+    command: ./node_modules/.bin/lerna run --scope fusion-plugin-rpc-redux-react test"
     agents:
       queue: workers
     plugins:
       "docker-compose#v1.5.2":
         run: "fusion-release"
   - name: "fusion-rpc-redux test"
-    command: "cd packages/fusion-rpc-redux && yarn test"
+    command: ./node_modules/.bin/lerna run --scope fusion-rpc-redux test"
     agents:
       queue: workers
     plugins:
       "docker-compose#v1.5.2":
         run: "fusion-release"
   - name: "fusion-plugin-rpc test"
-    command: "cd packages/fusion-plugin-rpc && yarn test"
+    command: ./node_modules/.bin/lerna run --scope fusion-plugin-rpc test"
     agents:
       queue: workers
     plugins:
       "docker-compose#v1.5.2":
         run: "fusion-release"
   - name: "fusion-plugin-redux-action-emitter-enhancer test"
-    command: "cd packages/fusion-plugin-redux-action-emitter-enhancer && yarn test"
+    command: ./node_modules/.bin/lerna run --scope fusion-plugin-redux-action-emitter-enhancer test"
     agents:
       queue: workers
     plugins:
       "docker-compose#v1.5.2":
         run: "fusion-release"
   - name: "fusion-plugin-react-router test"
-    command: "cd packages/fusion-plugin-react-router && yarn test"
+    command: ./node_modules/.bin/lerna run --scope fusion-plugin-react-router test"
     agents:
       queue: workers
     plugins:
       "docker-compose#v1.5.2":
         run: "fusion-release"
   - name: "fusion-plugin-react-redux test"
-    command: "cd packages/fusion-plugin-react-redux && yarn test"
+    command: ./node_modules/.bin/lerna run --scope fusion-plugin-react-redux test"
     agents:
       queue: workers
     plugins:
       "docker-compose#v1.5.2":
         run: "fusion-release"
   - name: "fusion-react test"
-    command: "cd packages/fusion-react && yarn test"
+    command: ./node_modules/.bin/lerna run --scope fusion-react test"
     agents:
       queue: workers
     plugins:
       "docker-compose#v1.5.2":
         run: "fusion-release"
   - name: "fusion-plugin-node-performance-emitter test"
-    command: "cd packages/fusion-plugin-node-performance-emitter && yarn test"
+    command: ./node_modules/.bin/lerna run --scope fusion-plugin-node-performance-emitter test"
     agents:
       queue: workers
     plugins:
       "docker-compose#v1.5.2":
         run: "fusion-release"
   - name: "fusion-react-async test"
-    command: "cd packages/fusion-react-async && yarn test"
+    command: ./node_modules/.bin/lerna run --scope fusion-react-async test"
     agents:
       queue: workers
     plugins:
       "docker-compose#v1.5.2":
         run: "fusion-release"
   - name: "eslint-config-fusion test"
-    command: "cd packages/eslint-config-fusion && yarn test"
+    command: ./node_modules/.bin/lerna run --scope eslint-config-fusion test"
     agents:
       queue: workers
     plugins:
       "docker-compose#v1.5.2":
         run: "fusion-release"
   - name: "fusion-plugin-i18n test"
-    command: "cd packages/fusion-plugin-i18n && yarn test"
+    command: ./node_modules/.bin/lerna run --scope fusion-plugin-i18n test"
     agents:
       queue: workers
     plugins:
       "docker-compose#v1.5.2":
         run: "fusion-release"
   - name: "fusion-plugin-error-handling test"
-    command: "cd packages/fusion-plugin-error-handling && yarn test"
+    command: ./node_modules/.bin/lerna run --scope fusion-plugin-error-handling test"
     agents:
       queue: workers
     plugins:
       "docker-compose#v1.5.2":
         run: "fusion-release"
   - name: "fusion-plugin-jwt test"
-    command: "cd packages/fusion-plugin-jwt && yarn test"
+    command: ./node_modules/.bin/lerna run --scope fusion-plugin-jwt test"
     agents:
       queue: workers
     plugins:
       "docker-compose#v1.5.2":
         run: "fusion-release"
   - name: "fusion-plugin-csrf-protection-react test"
-    command: "cd packages/fusion-plugin-csrf-protection-react && yarn test"
+    command: ./node_modules/.bin/lerna run --scope fusion-plugin-csrf-protection-react test"
     agents:
       queue: workers
     plugins:
       "docker-compose#v1.5.2":
         run: "fusion-release"
   - name: "fusion-plugin-csrf-protection test"
-    command: "cd packages/fusion-plugin-csrf-protection && yarn test"
+    command: ./node_modules/.bin/lerna run --scope fusion-plugin-csrf-protection test"
     agents:
       queue: workers
     plugins:
       "docker-compose#v1.5.2":
         run: "fusion-release"
   - name: "fusion-plugin-browser-performance-emitter test"
-    command: "cd packages/fusion-plugin-browser-performance-emitter && yarn test"
+    command: ./node_modules/.bin/lerna run --scope fusion-plugin-browser-performance-emitter test"
     agents:
       queue: workers
     plugins:
       "docker-compose#v1.5.2":
         run: "fusion-release"
   - name: "fusion-core test"
-    command: "cd packages/fusion-core && yarn test"
+    command: ./node_modules/.bin/lerna run --scope fusion-core test"
     agents:
       queue: workers
     plugins:
       "docker-compose#v1.5.2":
         run: "fusion-release"
   - name: "fusion-cli test"
-    command: "cd packages/fusion-cli && yarn test"
+    command: ./node_modules/.bin/lerna run --scope fusion-cli test"
     agents:
       queue: workers
     plugins:
       "docker-compose#v1.5.2":
         run: "fusion-release"
   - name: "browser-tests test"
-    command: "cd packages/browser-tests && yarn test"
+    command: ./node_modules/.bin/lerna run --scope browser-tests test"
     agents:
       queue: workers
     plugins:
       "docker-compose#v1.5.2":
         run: "fusion-release"
   - name: "fusion-apollo-universal-client test"
-    command: "cd packages/fusion-apollo-universal-client && yarn test"
+    command: ./node_modules/.bin/lerna run --scope fusion-apollo-universal-client test"
     agents:
       queue: workers
     plugins:
       "docker-compose#v1.5.2":
         run: "fusion-release"
   - name: "fusion-apollo test"
-    command: "cd packages/fusion-apollo && yarn test"
+    command: ./node_modules/.bin/lerna run --scope fusion-apollo test"
     agents:
       queue: workers
     plugins:
       "docker-compose#v1.5.2":
         run: "fusion-release"
   - name: "fusion-plugin-font-loader-react test"
-    command: "cd packages/fusion-plugin-font-loader-react && yarn test"
+    command: ./node_modules/.bin/lerna run --scope fusion-plugin-font-loader-react test"
     agents:
       queue: workers
     plugins:
       "docker-compose#v1.5.2":
         run: "fusion-release"
   - name: "fusion-scaffolder test"
-    command: "cd packages/fusion-scaffolder && yarn test"
+    command: ./node_modules/.bin/lerna run --scope fusion-scaffolder test"
     agents:
       queue: workers
     plugins:
       "docker-compose#v1.5.2":
         run: "fusion-release"
   - name: "fusion-tokens test"
-    command: "cd packages/fusion-tokens && yarn test"
+    command: ./node_modules/.bin/lerna run --scope fusion-tokens test"
     agents:
       queue: workers
     plugins:
