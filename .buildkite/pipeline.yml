@@ -6,7 +6,7 @@ steps:
         image-repository: 027047743804.dkr.ecr.us-east-2.amazonaws.com/uber
     agents:
       queue: builders
-    environment:
+    env:
       BUILDKITE_DOCKER_COMPOSE_FILE: docker-compose.test.yml
   - wait
   - name: ':eslint:'
