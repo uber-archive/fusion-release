@@ -19,7 +19,7 @@ const withEachRepo = require('fusion-orchestrate/src/utils/withEachRepo.js');
 
     testSteps.push({
       name: `${repo.name} test`,
-      command: `cd ${repo.name} && npm run test`,
+      command: `cd ${repo.name} && yarn test`,
       agent: {
         queue: 'workers',
       },

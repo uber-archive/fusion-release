@@ -1,5 +1,5 @@
 steps:
   - name: "Initialize monorepo"
-    command: "npm install && node index.js"
+    command: "yarn && node index.js"
     agents:
       queue: builders
