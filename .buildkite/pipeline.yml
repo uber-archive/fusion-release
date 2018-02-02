@@ -1,0 +1,5 @@
+steps:
+  - name: "Initialize monorepo"
+    command: "yarn && node index.js"
+    agents:
+      queue: builders
