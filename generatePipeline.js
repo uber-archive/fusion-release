@@ -18,7 +18,7 @@ const withEachRepo = require('fusion-orchestrate/src/utils/withEachRepo.js');
         queue: 'workers',
       },
       plugins: {
-        'docker-compose#v1.5.2': {
+        'docker-compose#v1.7.0': {
           run: 'fusion-release',
         },
       },
