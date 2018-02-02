@@ -50,13 +50,6 @@ steps:
     plugins:
       "docker-compose#v1.5.2":
         run: "fusion-release"
-  - name: "fusion-plugin-service-worker test"
-    command: "./node_modules/.bin/lerna run --scope fusion-plugin-service-worker test"
-    agents:
-      queue: workers
-    plugins:
-      "docker-compose#v1.5.2":
-        run: "fusion-release"
   - name: "fusion-plugin-styletron-react test"
     command: "./node_modules/.bin/lerna run --scope fusion-plugin-styletron-react test"
     agents:
@@ -190,8 +183,15 @@ steps:
     plugins:
       "docker-compose#v1.5.2":
         run: "fusion-release"
-  - name: "browser-tests test"
-    command: ./node_modules/.bin/lerna run --scope browser-tests test"
+  - name: "browser-tests test-chrome"
+    command: ./node_modules/.bin/lerna run --scope browser-tests test-chrome"
+    agents:
+      queue: workers
+    plugins:
+      "docker-compose#v1.5.2":
+        run: "fusion-release"
+  - name: "browser-tests test-firefox"
+    command: ./node_modules/.bin/lerna run --scope browser-tests test-chrome"
     agents:
       queue: workers
     plugins:
