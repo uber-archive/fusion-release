@@ -4,3 +4,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.test
+    volumes:
+      - '.:/fusion-release-test'
+      - /fusion-release-test/node_modules/
