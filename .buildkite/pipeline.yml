@@ -11,6 +11,6 @@ steps:
     command: "node generatePipeline.js"
     plugins:
       docker-compose#v1.5.2:
-        run: fusion-orchestrate
+        run: fusion-release
     agents:
       queue: workers
