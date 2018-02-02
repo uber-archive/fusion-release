@@ -2,8 +2,10 @@ const shelljs = require('shelljs');
 const withEachRepo = require('fusion-orchestrate/src/utils/withEachRepo.js');
 
 (async function() {
+  const ignoredRepos = ['probot-app-workflow'];
+
   await withEachRepo(async (api, repo) => {
-    if (repo.upstream !== 'fusionjs') {
+    if (repo.upstream !== 'fusionjs' || ignoredRepos.includes(repo.name)) {
       return;
     }
     console.log(`Cloning repository: ${repo.upstream}/${repo.name}`);
