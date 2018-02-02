@@ -3,11 +3,24 @@
   "version": "0.0.0",
   "description": "Validates and releases fusion packages",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "lint": "eslint ."
+  },
   "author": "Kevin Grandon <keving@uber.com>",
   "license": "MIT",
   "dependencies": {
     "fusion-orchestrate": "^1.0.2",
-    "lerna": "^2.8.0"
+    "lerna": "^2.8.0",
+    "shelljs": "^0.8.1"
+  },
+  "devDependencies": {
+    "babel-eslint": "^8.2.1",
+    "eslint": "^4.16.0",
+    "eslint-config-fusion": "^0.2.1",
+    "eslint-plugin-cup": "^1.0.0",
+    "eslint-plugin-flowtype": "^2.42.0",
+    "eslint-plugin-import": "^2.8.0",
+    "eslint-plugin-prettier": "^2.6.0",
+    "eslint-plugin-react": "^7.6.1"
   }
 }

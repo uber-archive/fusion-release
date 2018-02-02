@@ -1,0 +1,9 @@
+version: '2'
+services:
+  fusion-release-test:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    volumes:
+      - '.:/fusion-release-test'
+      - /fusion-release-test/node_modules/

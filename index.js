@@ -1,4 +1,4 @@
-const fs = require('fs');
+/* eslint-env node */
 const shelljs = require('shelljs');
 const withEachRepo = require('fusion-orchestrate/src/utils/withEachRepo.js');
 
@@ -13,6 +13,7 @@ const withEachRepo = require('fusion-orchestrate/src/utils/withEachRepo.js');
     if (repo.upstream !== 'fusionjs' || ignoredRepos.includes(repo.name)) {
       return;
     }
+    // eslint-disable-next-line no-console
     console.log(`Cloning repository: ${repo.upstream}/${repo.name}`);
 
     shelljs.exec(`
@@ -21,6 +22,7 @@ const withEachRepo = require('fusion-orchestrate/src/utils/withEachRepo.js');
     `);
   });
 
+  // eslint-disable-next-line no-console
   console.log('Initializing lerna monorepo and uploading pipeline.');
   shelljs.exec(`
       ./node_modules/.bin/lerna init &&
