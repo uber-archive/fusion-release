@@ -15,8 +15,17 @@ steps:
   #       run: fusion-release
   #   agents:
   #     queue: workers
+  - name: "all packages - flowtype"
+    command: "./node_modules/.bin/lerna exec -- [ -f ./node_modules/.bin/flow ] \\&\\& yarn flow \\|\\| true"
+    timeout_in_minutes: 60
+    agents:
+      queue: workers
+    plugins:
+      "docker-compose#v1.5.2":
+        run: "fusion-release"
   - name: "fusion-plugin-i18n-react test"
     command: "./node_modules/.bin/lerna run --scope fusion-plugin-i18n-react test"
+    timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
@@ -24,6 +33,7 @@ steps:
         run: "fusion-release"
   - name: "fusion-plugin-universal-logger test"
     command: "./node_modules/.bin/lerna run --scope fusion-plugin-universal-logger test"
+    timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
@@ -31,6 +41,7 @@ steps:
         run: "fusion-release"
   - name: "fusion-plugin-universal-events-react test"
     command: "./node_modules/.bin/lerna run --scope fusion-plugin-universal-events-react test"
+    timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
@@ -38,6 +49,7 @@ steps:
         run: "fusion-release"
   - name: "fusion-plugin-universal-events test"
     command: "./node_modules/.bin/lerna run --scope fusion-plugin-universal-events test"
+    timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
@@ -45,6 +57,7 @@ steps:
         run: "fusion-release"
   - name: "fusion-test-utils test"
     command: "./node_modules/.bin/lerna run --scope fusion-test-utils test"
+    timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
@@ -52,6 +65,7 @@ steps:
         run: "fusion-release"
   - name: "fusion-plugin-styletron-react test"
     command: "./node_modules/.bin/lerna run --scope fusion-plugin-styletron-react test"
+    timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
@@ -59,6 +73,7 @@ steps:
         run: "fusion-release"
   - name: "fusion-plugin-rpc-redux-react test"
     command: "./node_modules/.bin/lerna run --scope fusion-plugin-rpc-redux-react test"
+    timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
@@ -66,6 +81,7 @@ steps:
         run: "fusion-release"
   - name: "fusion-rpc-redux test"
     command: "./node_modules/.bin/lerna run --scope fusion-rpc-redux test"
+    timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
@@ -73,6 +89,7 @@ steps:
         run: "fusion-release"
   - name: "fusion-plugin-rpc test"
     command: "./node_modules/.bin/lerna run --scope fusion-plugin-rpc test"
+    timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
@@ -80,6 +97,7 @@ steps:
         run: "fusion-release"
   - name: "fusion-plugin-redux-action-emitter-enhancer test"
     command: "./node_modules/.bin/lerna run --scope fusion-plugin-redux-action-emitter-enhancer test"
+    timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
@@ -87,6 +105,7 @@ steps:
         run: "fusion-release"
   - name: "fusion-plugin-react-router test"
     command: "./node_modules/.bin/lerna run --scope fusion-plugin-react-router test"
+    timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
@@ -94,6 +113,7 @@ steps:
         run: "fusion-release"
   - name: "fusion-plugin-react-redux test"
     command: "./node_modules/.bin/lerna run --scope fusion-plugin-react-redux test"
+    timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
@@ -101,6 +121,7 @@ steps:
         run: "fusion-release"
   - name: "fusion-react test"
     command: "./node_modules/.bin/lerna run --scope fusion-react test"
+    timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
@@ -108,6 +129,7 @@ steps:
         run: "fusion-release"
   - name: "fusion-plugin-node-performance-emitter test"
     command: "./node_modules/.bin/lerna run --scope fusion-plugin-node-performance-emitter test"
+    timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
@@ -115,6 +137,7 @@ steps:
         run: "fusion-release"
   - name: "fusion-react-async test"
     command: "./node_modules/.bin/lerna run --scope fusion-react-async test"
+    timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
@@ -122,6 +145,7 @@ steps:
         run: "fusion-release"
   - name: "eslint-config-fusion test"
     command: ./node_modules/.bin/lerna run --scope eslint-config-fusion test"
+    timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
@@ -129,6 +153,7 @@ steps:
         run: "fusion-release"
   - name: "fusion-plugin-i18n test"
     command: "./node_modules/.bin/lerna run --scope fusion-plugin-i18n test"
+    timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
@@ -136,6 +161,7 @@ steps:
         run: "fusion-release"
   - name: "fusion-plugin-error-handling test"
     command: "./node_modules/.bin/lerna run --scope fusion-plugin-error-handling test"
+    timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
@@ -143,6 +169,7 @@ steps:
         run: "fusion-release"
   - name: "fusion-plugin-jwt test"
     command: "./node_modules/.bin/lerna run --scope fusion-plugin-jwt test"
+    timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
@@ -150,6 +177,7 @@ steps:
         run: "fusion-release"
   - name: "fusion-plugin-csrf-protection-react test"
     command: "./node_modules/.bin/lerna run --scope fusion-plugin-csrf-protection-react test"
+    timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
@@ -157,6 +185,7 @@ steps:
         run: "fusion-release"
   - name: "fusion-plugin-csrf-protection test"
     command: "./node_modules/.bin/lerna run --scope fusion-plugin-csrf-protection test"
+    timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
@@ -164,6 +193,7 @@ steps:
         run: "fusion-release"
   - name: "fusion-plugin-browser-performance-emitter test"
     command: "./node_modules/.bin/lerna run --scope fusion-plugin-browser-performance-emitter test"
+    timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
@@ -171,6 +201,7 @@ steps:
         run: "fusion-release"
   - name: "fusion-core test"
     command: "./node_modules/.bin/lerna run --scope fusion-core test"
+    timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
@@ -178,6 +209,7 @@ steps:
         run: "fusion-release"
   - name: "fusion-cli test"
     command: "./node_modules/.bin/lerna run --scope fusion-cli test"
+    timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
@@ -185,6 +217,7 @@ steps:
         run: "fusion-release"
   - name: "browser-tests test-chrome"
     command: ./node_modules/.bin/lerna run --scope browser-tests test-chrome"
+    timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
@@ -192,6 +225,7 @@ steps:
         run: "fusion-release"
   - name: "browser-tests test-firefox"
     command: ./node_modules/.bin/lerna run --scope browser-tests test-chrome"
+    timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
@@ -199,6 +233,7 @@ steps:
         run: "fusion-release"
   - name: "fusion-apollo-universal-client test"
     command: "./node_modules/.bin/lerna run --scope fusion-apollo-universal-client test"
+    timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
@@ -206,6 +241,7 @@ steps:
         run: "fusion-release"
   - name: "fusion-apollo test"
     command: "./node_modules/.bin/lerna run --scope fusion-apollo test"
+    timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
@@ -213,6 +249,7 @@ steps:
         run: "fusion-release"
   - name: "fusion-plugin-font-loader-react test"
     command: "./node_modules/.bin/lerna run --scope fusion-plugin-font-loader-react test"
+    timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
@@ -220,6 +257,7 @@ steps:
         run: "fusion-release"
   - name: "fusion-scaffolder test"
     command: "./node_modules/.bin/lerna run --scope fusion-scaffolder test"
+    timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
@@ -227,6 +265,7 @@ steps:
         run: "fusion-release"
   - name: "fusion-tokens test"
     command: "./node_modules/.bin/lerna run --scope fusion-tokens test"
+    timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
