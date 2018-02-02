@@ -1,8 +1,16 @@
 steps:
-  - name: ":docker: :package:"
+  - name: ":docker: bootstrap monorepo image"
     plugins:
       docker-compose#v1.5.2:
         build: fusion-release
         image-repository: 027047743804.dkr.ecr.us-east-2.amazonaws.com/uber
     agents:
       queue: builders
+  - wait
+  - name: ":pipeline: generate monorepo steps"
+    command: "node generatePipeline.js"
+    plugins:
+      docker-compose#v1.5.2:
+        run: fusion-orchestrate
+    agents:
+      queue: workers
