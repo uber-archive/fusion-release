@@ -3,7 +3,11 @@ const shelljs = require('shelljs');
 const withEachRepo = require('fusion-orchestrate/src/utils/withEachRepo.js');
 
 (async function() {
-  const ignoredRepos = ['probot-app-workflow', 'fusion-release'];
+  const ignoredRepos = [
+    'probot-app-workflow',
+    'fusion-release',
+    'fusion-plugin-service-worker',
+  ];
   const testSteps = [];
 
   await withEachRepo(async (api, repo) => {
