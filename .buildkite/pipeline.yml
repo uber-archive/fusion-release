@@ -16,3 +16,5 @@ steps:
         run: fusion-release-test
     agents:
       queue: workers
+    env:
+      BUILDKITE_DOCKER_COMPOSE_FILE: docker-compose.test.yml
