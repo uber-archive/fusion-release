@@ -1,0 +1,13 @@
+{
+  "name": "fusion-release",
+  "version": "0.0.0",
+  "description": "Validates and releases fusion packages",
+  "main": "index.js",
+  "scripts": {},
+  "author": "Kevin Grandon <keving@uber.com>",
+  "license": "ISC",
+  "dependencies": {
+    "fusion-orchestrate": "^1.0.2",
+    "lerna": "^2.8.0"
+  }
+}
