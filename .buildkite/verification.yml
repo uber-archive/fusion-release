@@ -223,14 +223,15 @@ steps:
     plugins:
       "docker-compose#v1.5.2":
         run: "fusion-release"
-  - name: "browser-tests test-firefox"
-    command: "./node_modules/.bin/lerna exec --scope browser-tests yarn test-firefox"
-    timeout_in_minutes: 60
-    agents:
-      queue: workers
-    plugins:
-      "docker-compose#v1.5.2":
-        run: "fusion-release"
+  # Disabled because Firefox is currently not installed in the browser-tests image.
+  # - name: "browser-tests test-firefox"
+  #   command: "./node_modules/.bin/lerna exec --scope browser-tests yarn test-firefox"
+  #   timeout_in_minutes: 60
+  #   agents:
+  #     queue: workers
+  #   plugins:
+  #     "docker-compose#v1.5.2":
+  #       run: "fusion-release"
   - name: "fusion-apollo-universal-client test"
     command: "./node_modules/.bin/lerna exec --scope fusion-apollo-universal-client yarn test"
     timeout_in_minutes: 60
