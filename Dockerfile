@@ -10,4 +10,4 @@ COPY . .
 
 RUN yarn
 
-RUN node index.js
+RUN node src/index.js
