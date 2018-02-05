@@ -191,8 +191,8 @@ async function installBatchedPackages(batches) {
         );
 
         // If we have a transpile script, transpile then copy to all other dependent packages
-        console.log(`${pkg.name} - transpiling`);
         if (pkg.scripts.transpile) {
+          console.log(`${pkg.name} - transpiling`);
           shelljs.exec(`cd packages/${pkg.name} && yarn transpile`);
         }
 

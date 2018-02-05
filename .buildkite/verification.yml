@@ -16,7 +16,7 @@ steps:
   #   agents:
   #     queue: workers
   - name: "all packages - flowtype"
-    command: "./node_modules/.bin/lerna exec -- [ -f ./node_modules/.bin/flow ] && yarn flow || true"
+    command: "./node_modules/.bin/lerna exec --scope fusion-* yarn flow check"
     timeout_in_minutes: 60
     agents:
       queue: workers
