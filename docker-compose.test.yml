@@ -8,4 +8,3 @@ services:
     volumes:
       - '.:/fusion-release-test'
       - /fusion-release-test/node_modules/
-      - '/var/run/docker.sock:/var/run/docker.sock'
