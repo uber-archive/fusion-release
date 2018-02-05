@@ -4,7 +4,8 @@
   "description": "Validates and releases fusion packages",
   "main": "index.js",
   "scripts": {
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "clean": "rm -rf packages/*/"
   },
   "author": "Kevin Grandon <keving@uber.com>",
   "license": "MIT",
