@@ -144,7 +144,7 @@ steps:
       "docker-compose#v1.5.2":
         run: "fusion-release"
   - name: "eslint-config-fusion test"
-    command: ./node_modules/.bin/lerna exec --scope eslint-config-fusion yarn test"
+    command: "./node_modules/.bin/lerna exec --scope eslint-config-fusion yarn test"
     timeout_in_minutes: 60
     agents:
       queue: workers
@@ -218,6 +218,7 @@ steps:
   - name: "browser-tests test-chrome"
     command: "./node_modules/.bin/lerna exec --scope browser-tests test-yarn chrome"
     timeout_in_minutes: 60
+    network_mode: "host"
     agents:
       queue: workers
     plugins:
@@ -226,6 +227,7 @@ steps:
   - name: "browser-tests test-firefox"
     command: "./node_modules/.bin/lerna exec --scope browser-tests test-yarn firefox"
     timeout_in_minutes: 60
+    network_mode: "host"
     agents:
       queue: workers
     plugins:

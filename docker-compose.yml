@@ -2,5 +2,5 @@ version: '2'
 services:
   fusion-release:
     build: .
-    volumes:
-      - /usr/bin/buildkite-agent:/usr/bin/buildkite-agent
+    # volumes:
+    #   - /usr/bin/buildkite-agent:/usr/bin/buildkite-agent

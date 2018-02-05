@@ -2,3 +2,6 @@ node_modules/
 packages/*/
 lerna.json
 steps.json
+lerna-debug.log
+yarn.lock
+
