@@ -216,7 +216,7 @@ steps:
       "docker-compose#v1.5.2":
         run: "fusion-release"
   - name: "browser-tests test-chrome"
-    command: "./node_modules/.bin/lerna exec --scope browser-tests test-yarn chrome"
+    command: "./node_modules/.bin/lerna exec --scope browser-tests yarn test-chrome"
     timeout_in_minutes: 60
     agents:
       queue: workers
@@ -224,7 +224,7 @@ steps:
       "docker-compose#v1.5.2":
         run: "fusion-release"
   - name: "browser-tests test-firefox"
-    command: "./node_modules/.bin/lerna exec --scope browser-tests test-yarn firefox"
+    command: "./node_modules/.bin/lerna exec --scope browser-tests yarn test-firefox"
     timeout_in_minutes: 60
     agents:
       queue: workers
