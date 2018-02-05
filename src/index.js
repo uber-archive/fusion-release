@@ -1,6 +1,8 @@
 /* eslint-env node */
+/* eslint-disable no-console*/
 const shelljs = require('shelljs');
 const withEachRepo = require('fusion-orchestrate/src/utils/withEachRepo.js');
+const packageUtils = require('./packageUtils');
 
 (async function() {
   const ignoredRepos = [
@@ -9,10 +11,12 @@ const withEachRepo = require('fusion-orchestrate/src/utils/withEachRepo.js');
     'fusion-plugin-service-worker',
   ];
 
+  const allPackages = [];
   await withEachRepo(async (api, repo) => {
     if (repo.upstream !== 'fusionjs' || ignoredRepos.includes(repo.name)) {
       return;
     }
+    allPackages.push(repo.name);
     // eslint-disable-next-line no-console
     console.log(`Cloning repository: ${repo.upstream}/${repo.name}`);
 
@@ -22,10 +26,10 @@ const withEachRepo = require('fusion-orchestrate/src/utils/withEachRepo.js');
     `);
   });
 
-  // eslint-disable-next-line no-console
-  console.log('Initializing lerna monorepo and uploading pipeline.');
-  shelljs.exec(`
-      ./node_modules/.bin/lerna init &&
-      ./node_modules/.bin/lerna bootstrap
-    `);
+  console.log('Initializing topologically sorted monorepo.');
+  const packages = packageUtils.getPackages(allPackages);
+  console.log('Building batches.');
+  const batches = packageUtils.topologicallyBatchPackages(packages);
+  console.log('Installing and transpiling batched package groups.');
+  await packageUtils.installBatchedPackages(batches);
 })();

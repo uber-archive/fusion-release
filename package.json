@@ -9,6 +9,7 @@
   "author": "Kevin Grandon <keving@uber.com>",
   "license": "MIT",
   "dependencies": {
+    "chalk": "^2.3.0",
     "fusion-orchestrate": "^1.0.2",
     "lerna": "^2.8.0",
     "shelljs": "^0.8.1"
