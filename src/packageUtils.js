@@ -212,7 +212,7 @@ async function installBatchedPackages(batches) {
             }/node_modules/${pkg.name}`);
           } else {
             // Otherwise copy only the package files
-            pkg.files.forEach(file => {
+            ['package.json', ...pkg.files].forEach(file => {
               shelljs.exec(`
               cp -R packages/${pkg.name}/${file} packages/${
                 pkg.dependents[k]
