@@ -1,3 +1,5 @@
+/* eslint-env node */
+/* eslint-disable no-console*/
 const path = require('path');
 const chalk = require('chalk');
 const shelljs = require('shelljs');
@@ -20,7 +22,7 @@ class PackageGraphNode {
  * @param {!Array.<Package>} packages An array of Packages to build the graph out of.
  */
 class PackageGraph {
-  constructor(packages, versionParser) {
+  constructor(packages) {
     this.nodes = [];
     this.nodesByName = {};
 
@@ -54,6 +56,7 @@ class PackageGraph {
 
 class Package {
   constructor(packageName, packageList) {
+    // eslint-disable-next-line import/no-dynamic-require
     const packageJson = require(path.join(
       __dirname,
       '..',
@@ -91,17 +94,17 @@ function getPackages(packageList) {
 
   // Gather dependents information.
   const dependents = {};
-  packages.forEach(package => {
-    Object.keys(package.fusionDependencies).forEach(fusionDependency => {
+  packages.forEach(pkg => {
+    Object.keys(pkg.fusionDependencies).forEach(fusionDependency => {
       dependents[fusionDependency] = dependents[fusionDependency] || [];
-      dependents[fusionDependency].push(package.name);
+      dependents[fusionDependency].push(pkg.name);
     });
   });
 
   // Insert depentents information.
-  packages.forEach(package => {
-    if (dependents[package.name]) {
-      package.dependents = dependents[package.name];
+  packages.forEach(pkg => {
+    if (dependents[pkg.name]) {
+      pkg.dependents = dependents[pkg.name];
     }
   });
 
@@ -171,32 +174,30 @@ async function installBatchedPackages(batches) {
   for (let i = 0; i < batches.length; i++) {
     const batch = batches[i];
     for (let j = 0; j < batch.length; j++) {
-      const package = batch[j];
-      console.log(
-        chalk.bold.blue(`Installing dependencies for ${package.name}`)
-      );
+      const pkg = batch[j];
+      console.log(chalk.bold.blue(`Installing dependencies for ${pkg.name}`));
       shelljs.exec(
         `
-        cd packages/${package.name} &&
-        yarn add ${Object.keys(package.nonFusionDependencies).join(' ')}
+        cd packages/${pkg.name} &&
+        yarn add ${Object.keys(pkg.nonFusionDependencies).join(' ')}
       `,
         {silent: true}
       );
 
       // If we have a transpile script, transpile then copy to all other dependent packages
-      if (package.scripts.transpile) {
-        shelljs.exec(`cd packages/${package.name} && yarn transpile`);
-        for (let k = 0; k < package.dependents.length; k++) {
+      if (pkg.scripts.transpile) {
+        shelljs.exec(`cd packages/${pkg.name} && yarn transpile`);
+        for (let k = 0; k < pkg.dependents.length; k++) {
           console.log(
-            `transpiling and copying into dependent ${package.dependents[k]}`
+            `transpiling and copying into dependent ${pkg.dependents[k]}`
           );
           shelljs.exec(
-            `mkdir -p packages/${package.dependents[k]}/node_modules/${
-              package.name
+            `mkdir -p packages/${pkg.dependents[k]}/node_modules/${
+              pkg.name
             } && \
-            cp -R packages/${package.name} packages/${
-              package.dependents[k]
-            }/node_modules/${package.name}`
+            cp -R packages/${pkg.name} packages/${
+              pkg.dependents[k]
+            }/node_modules/${pkg.name}`
           );
         }
       }
