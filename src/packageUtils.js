@@ -65,6 +65,7 @@ class Package {
       'package.json'
     ));
     this.name = packageName;
+    this.files = packageJson.files;
     this.scripts = packageJson.scripts;
     // dependents are populated after we get all of the packages.
     this.dependents = [];
@@ -173,35 +174,54 @@ function topologicallyBatchPackages(allPackages, {rejectCycles} = {}) {
 async function installBatchedPackages(batches) {
   for (let i = 0; i < batches.length; i++) {
     const batch = batches[i];
-    for (let j = 0; j < batch.length; j++) {
-      const pkg = batch[j];
-      console.log(chalk.bold.blue(`Installing dependencies for ${pkg.name}`));
-      shelljs.exec(
-        `
-        cd packages/${pkg.name} &&
-        yarn add ${Object.keys(pkg.nonFusionDependencies).join(' ')}
-      `,
-        {silent: true}
-      );
+    console.log(
+      chalk.bold.green(
+        `Processing batch ${i} which contains ${batch.length} packages`
+      )
+    );
 
-      // If we have a transpile script, transpile then copy to all other dependent packages
-      if (pkg.scripts.transpile) {
-        shelljs.exec(`cd packages/${pkg.name} && yarn transpile`);
+    // Process each batch of dependencies in parallel.
+    await Promise.all(
+      batch.map(async pkg => {
+        console.log(chalk.bold.blue(`${pkg.name} - installing dependencies`));
+        shelljs.exec(
+          `cd packages/${pkg.name} && \
+          yarn add ${Object.keys(pkg.nonFusionDependencies).join(' ')}`,
+          {silent: true}
+        );
+
+        // If we have a transpile script, transpile then copy to all other dependent packages
+        console.log(`${pkg.name} - transpiling`);
+        if (pkg.scripts.transpile) {
+          shelljs.exec(`cd packages/${pkg.name} && yarn transpile`);
+        }
+
+        // Copy into all dependents
         for (let k = 0; k < pkg.dependents.length; k++) {
           console.log(
-            `transpiling and copying into dependent ${pkg.dependents[k]}`
+            `${pkg.name} - copying into dependent ${pkg.dependents[k]}`
           );
           shelljs.exec(
-            `mkdir -p packages/${pkg.dependents[k]}/node_modules/${
-              pkg.name
-            } && \
-            cp -R packages/${pkg.name} packages/${
-              pkg.dependents[k]
-            }/node_modules/${pkg.name}`
+            `mkdir -p packages/${pkg.dependents[k]}/node_modules/${pkg.name}`
           );
+          // If there are no package files copy everything
+          if (!pkg.files) {
+            shelljs.exec(`
+              cp -R packages/${pkg.name} packages/${
+              pkg.dependents[k]
+            }/node_modules/${pkg.name}`);
+          } else {
+            // Otherwise copy only the package files
+            pkg.files.forEach(file => {
+              shelljs.exec(`
+              cp -R packages/${pkg.name}/${file} packages/${
+                pkg.dependents[k]
+              }/node_modules/${pkg.name}/${file}`);
+            });
+          }
         }
-      }
-    }
+      })
+    );
   }
 }
 
