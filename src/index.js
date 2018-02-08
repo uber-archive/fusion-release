@@ -26,6 +26,20 @@ const packageUtils = require('./packageUtils');
     `);
   });
 
+  // Process anything from the ADDITIONAL_REPOS env var
+  if (process.env.ADDITIONAL_REPOS) {
+    const additionalRepos = process.env.ADDITIONAL_REPOS.split(',');
+    if (additionalRepos && additionalRepos.length) {
+      for (let i = 0; i < additionalRepos.length; i++) {
+        shelljs.exec(`
+          cd packages &&
+          git clone --depth 1 ${additionalRepos[i]}
+        `);
+        allPackages.push(additionalRepos[i].match(/([A-Za-z0-9\-\_]*)$/)[1]);
+      }
+    }
+  }
+
   console.log('Initializing topologically sorted monorepo.');
   const packages = packageUtils.getPackages(allPackages);
   console.log('Building batches.');
