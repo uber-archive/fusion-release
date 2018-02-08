@@ -54,6 +54,19 @@ class PackageGraph {
   }
 }
 
+const findDeps = (depList, filterFn) => {
+  if (!depList) {
+    return {};
+  }
+
+  return Object.keys(depList)
+    .filter(filterFn)
+    .reduce((obj, key) => {
+      obj[key] = depList[key];
+      return obj;
+    }, {});
+};
+
 class Package {
   constructor(packageName, packageList) {
     // eslint-disable-next-line import/no-dynamic-require
@@ -69,22 +82,25 @@ class Package {
     this.scripts = packageJson.scripts;
     // dependents are populated after we get all of the packages.
     this.dependents = [];
+    this.devDependents = [];
     this.allDependencies = {
       ...packageJson.devDependencies,
       ...packageJson.dependencies,
     };
-    this.fusionDependencies = Object.keys(this.allDependencies)
-      .filter(key => packageList.includes(key))
-      .reduce((obj, key) => {
-        obj[key] = this.allDependencies[key];
-        return obj;
-      }, {});
-    this.nonFusionDependencies = Object.keys(this.allDependencies)
-      .filter(key => !packageList.includes(key))
-      .reduce((obj, key) => {
-        obj[key] = this.allDependencies[key];
-        return obj;
-      }, {});
+    this.fusionDependencies = findDeps(packageJson.dependencies, key =>
+      packageList.includes(key)
+    );
+    this.fusionDevDependencies = findDeps(packageJson.devDependencies, key =>
+      packageList.includes(key)
+    );
+    this.nonFusionDependencies = findDeps(
+      packageJson.dependencies,
+      key => !packageList.includes(key)
+    );
+    this.nonFusionDevDependencies = findDeps(
+      packageJson.devDependencies,
+      key => !packageList.includes(key)
+    );
   }
 }
 
@@ -95,10 +111,16 @@ function getPackages(packageList) {
 
   // Gather dependents information.
   const dependents = {};
+  const devDependents = {};
   packages.forEach(pkg => {
     Object.keys(pkg.fusionDependencies).forEach(fusionDependency => {
       dependents[fusionDependency] = dependents[fusionDependency] || [];
       dependents[fusionDependency].push(pkg.name);
+    });
+    Object.keys(pkg.fusionDevDependencies).forEach(fusionDevDependency => {
+      devDependents[fusionDevDependency] =
+        devDependents[fusionDevDependency] || [];
+      devDependents[fusionDevDependency].push(pkg.name);
     });
   });
 
@@ -106,6 +128,9 @@ function getPackages(packageList) {
   packages.forEach(pkg => {
     if (dependents[pkg.name]) {
       pkg.dependents = dependents[pkg.name];
+    }
+    if (devDependents[pkg.name]) {
+      pkg.devDependents = devDependents[pkg.name];
     }
   });
 
@@ -197,25 +222,26 @@ async function installBatchedPackages(batches) {
         }
 
         // Copy into all dependents
-        for (let k = 0; k < pkg.dependents.length; k++) {
+        const allDependents = [...pkg.dependents, ...pkg.devDependents];
+        for (let k = 0; k < allDependents.length; k++) {
           console.log(
-            `${pkg.name} - copying into dependent ${pkg.dependents[k]}`
+            `${pkg.name} - copying into dependent ${allDependents[k]}`
           );
           shelljs.exec(
-            `mkdir -p packages/${pkg.dependents[k]}/node_modules/${pkg.name}`
+            `mkdir -p packages/${allDependents[k]}/node_modules/${pkg.name}`
           );
           // If there are no package files copy everything
           if (!pkg.files) {
             shelljs.exec(`
               cp -R packages/${pkg.name} packages/${
-              pkg.dependents[k]
+              allDependents[k]
             }/node_modules/${pkg.name}`);
           } else {
             // Otherwise copy only the package files
             ['package.json', ...pkg.files].forEach(file => {
               shelljs.exec(`
               cp -R packages/${pkg.name}/${file} packages/${
-                pkg.dependents[k]
+                allDependents[k]
               }/node_modules/${pkg.name}/${file}`);
             });
           }
