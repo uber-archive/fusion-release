@@ -58,8 +58,7 @@ class Package {
   constructor(packageName, packageList) {
     // eslint-disable-next-line import/no-dynamic-require
     const packageJson = require(path.join(
-      __dirname,
-      '..',
+      process.cwd(),
       'packages',
       packageName,
       'package.json'
