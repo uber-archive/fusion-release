@@ -280,3 +280,11 @@ steps:
     plugins:
       "docker-compose#v1.5.2":
         run: "fusion-release"
+  - wait
+  - name: "topological lockstep publishing"
+    command: "node src/publish.js"
+    agents:
+      queue: workers
+    plugins:
+      "docker-compose#v1.5.2":
+        run: "fusion-release"
