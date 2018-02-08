@@ -35,7 +35,7 @@ const packageUtils = require('./packageUtils');
           cd packages &&
           git clone --depth 1 ${additionalRepos[i]}
         `);
-        allPackages.push(additionalRepos[i].match(/([A-Za-z0-9\-\_]*)$/)[1]);
+        allPackages.push(additionalRepos[i].match(/([A-Za-z0-9\-_]*)$/)[1]);
       }
     }
   }
