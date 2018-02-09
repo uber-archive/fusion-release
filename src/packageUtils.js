@@ -232,7 +232,7 @@ async function installBatchedPackages(batches) {
                 shelljs.exec(`cp packages/${pkg.name}/${file} ${copyTo}`);
               } else {
                 // Handle folders
-                shelljs.exec(`cp -R packages/${pkg.name}/${file}/ ${copyTo}`);
+                shelljs.exec(`cp -R packages/${pkg.name}/${file}/ ${copyTo}/`);
               }
             });
           }
