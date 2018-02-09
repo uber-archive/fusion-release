@@ -171,6 +171,25 @@ function topologicallyBatchPackages(allPackages, {rejectCycles} = {}) {
 }
 
 async function installBatchedPackages(batches) {
+  // Install non-fusion dependencies for all packages first.
+  console.log(
+    chalk.bold.blue(`installing package.json non-fusion dependencies`)
+  );
+  for (let i = 0; i < batches.length; i++) {
+    const batch = batches[i];
+    await Promise.all(
+      batch.map(async pkg => {
+        console.log(`${pkg.name} - installing dependencies`);
+        shelljs.exec(
+          `cd packages/${pkg.name} && \
+          yarn add ${Object.keys(pkg.nonFusionDependencies).join(' ')}`,
+          {silent: true}
+        );
+      })
+    );
+  }
+
+  console.log(chalk.bold.blue(`transpile and insert into dependent modules`));
   for (let i = 0; i < batches.length; i++) {
     const batch = batches[i];
     console.log(
@@ -182,13 +201,6 @@ async function installBatchedPackages(batches) {
     // Process each batch of dependencies in parallel.
     await Promise.all(
       batch.map(async pkg => {
-        console.log(chalk.bold.blue(`${pkg.name} - installing dependencies`));
-        shelljs.exec(
-          `cd packages/${pkg.name} && \
-          yarn add ${Object.keys(pkg.nonFusionDependencies).join(' ')}`,
-          {silent: true}
-        );
-
         // If we have a transpile script, transpile then copy to all other dependent packages
         if (pkg.scripts.transpile) {
           console.log(`${pkg.name} - transpiling`);
@@ -200,22 +212,28 @@ async function installBatchedPackages(batches) {
           console.log(
             `${pkg.name} - copying into dependent ${pkg.dependents[k]}`
           );
-          shelljs.exec(
-            `mkdir -p packages/${pkg.dependents[k]}/node_modules/${pkg.name}`
-          );
           // If there are no package files copy everything
           if (!pkg.files) {
             shelljs.exec(`
-              cp -R packages/${pkg.name} packages/${
+              cp -R packages/${pkg.name}/ packages/${
               pkg.dependents[k]
             }/node_modules/${pkg.name}`);
           } else {
             // Otherwise copy only the package files
+            shelljs.exec(
+              `mkdir -p packages/${pkg.dependents[k]}/node_modules/${pkg.name}`
+            );
             ['package.json', ...pkg.files].forEach(file => {
-              shelljs.exec(`
-              cp -R packages/${pkg.name}/${file} packages/${
-                pkg.dependents[k]
-              }/node_modules/${pkg.name}/${file}`);
+              const copyTo = `packages/${pkg.dependents[k]}/node_modules/${
+                pkg.name
+              }/${file}`;
+              // If file just copy
+              if (file.includes('.')) {
+                shelljs.exec(`cp packages/${pkg.name}/${file} ${copyTo}`);
+              } else {
+                // Handle folders
+                shelljs.exec(`cp -R packages/${pkg.name}/${file}/. ${copyTo}/`);
+              }
             });
           }
         }
