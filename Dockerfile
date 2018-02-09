@@ -10,4 +10,6 @@ COPY . .
 
 RUN yarn
 
+RUN yarn global add create-universal-package
+
 RUN node src/index.js

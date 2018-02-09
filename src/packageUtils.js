@@ -206,14 +206,15 @@ async function installBatchedPackages(batches) {
           yarn`,
           {silent: true}
         );
-        pkg.fusionDependencies.forEach(fusionDep => {
-          shelljs.exec(
-            `cd packages/${pkg.name}/node_modules/${fusionDep} && \
-            yarn && \
-            yarn transpile`,
-            {silent: true}
-          );
-        });
+        for (let dep in pkg.fusionDependencies) {
+          if (dep.startsWith('fusion-')) {
+            shelljs.exec(
+              `cd packages/${pkg.name}/node_modules/${dep} && \
+                yarn transpile || true`,
+              {silent: true}
+            );
+          }
+        }
       })
     );
   }
