@@ -205,7 +205,7 @@ async function installBatchedPackages(batches) {
         if (pkg.scripts.transpile) {
           console.log(`${pkg.name} - transpiling`);
           shelljs.exec(
-            `cd packages/${pkg.name} && ./node_modules/.bin/cup build`
+            `cd packages/${pkg.name} && yarn transpile`
           );
         }
 
