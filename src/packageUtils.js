@@ -183,9 +183,10 @@ async function installBatchedPackages(batches) {
     await Promise.all(
       batch.map(async pkg => {
         console.log(chalk.bold.blue(`${pkg.name} - installing dependencies`));
+        // Install with NPM as running yarn-add will also install the fusion dependencies we don't want.
         shelljs.exec(
           `cd packages/${pkg.name} && \
-          yarn add ${Object.keys(pkg.nonFusionDependencies).join(' ')}`,
+          npm install ${Object.keys(pkg.nonFusionDependencies).join(' ')}`,
           {silent: true}
         );
 
