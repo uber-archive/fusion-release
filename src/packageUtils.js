@@ -204,21 +204,21 @@ async function installBatchedPackages(batches) {
           shelljs.exec(
             `mkdir -p packages/${pkg.dependents[k]}/node_modules/${pkg.name}`
           );
-          // If there are no package files copy everything
-          if (!pkg.files) {
-            shelljs.exec(`
+          // Copy the entire module for now for correctness.
+          // if (!pkg.files) {
+          shelljs.exec(`
               cp -R packages/${pkg.name}/ packages/${
-              pkg.dependents[k]
-            }/node_modules/${pkg.name}`);
-          } else {
-            // Otherwise copy only the package files
-            ['package.json', ...pkg.files].forEach(file => {
-              shelljs.exec(`
-              cp -R packages/${pkg.name}/${file} packages/${
-                pkg.dependents[k]
-              }/node_modules/${pkg.name}/${file}`);
-            });
-          }
+            pkg.dependents[k]
+          }/node_modules/${pkg.name}`);
+          // } else {
+          //   // Otherwise copy only the package files
+          //   ['package.json', ...pkg.files].forEach(file => {
+          //     shelljs.exec(`
+          //     cp -R packages/${pkg.name}/${file} packages/${
+          //       pkg.dependents[k]
+          //     }/node_modules/${pkg.name}/${file}`);
+          //   });
+          // }
         }
       })
     );
