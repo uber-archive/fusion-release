@@ -5,7 +5,7 @@ steps:
         build: fusion-release
         image-repository: 027047743804.dkr.ecr.us-east-2.amazonaws.com/uber
     agents:
-      queue: builders
+      queue: beefy
   - wait
   # Just manually upload steps for now until we can dynamically generate the pipeline
   # - name: ":pipeline: generate monorepo steps"
