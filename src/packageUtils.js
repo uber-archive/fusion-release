@@ -207,7 +207,7 @@ async function installBatchedPackages(batches) {
           // If there are no package files copy everything
           if (!pkg.files) {
             shelljs.exec(`
-              cp -R packages/${pkg.name} packages/${
+              cp -R packages/${pkg.name}/ packages/${
               pkg.dependents[k]
             }/node_modules/${pkg.name}`);
           } else {
