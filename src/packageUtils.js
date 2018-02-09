@@ -1,5 +1,6 @@
 /* eslint-env node */
 /* eslint-disable no-console*/
+const fs = require('fs');
 const path = require('path');
 const chalk = require('chalk');
 const shelljs = require('shelljs');
@@ -56,13 +57,35 @@ class PackageGraph {
 
 class Package {
   constructor(packageName, packageList) {
-    // eslint-disable-next-line import/no-dynamic-require
-    const packageJson = require(path.join(
+    const packagePath = path.join(
       process.cwd(),
       'packages',
       packageName,
       'package.json'
-    ));
+    );
+    // eslint-disable-next-line import/no-dynamic-require
+    const packageJson = require(packagePath);
+
+    // Rewrite to GH URLs
+    ['dependencies', 'devDependencies', 'peerDependencies'].forEach(field => {
+      if (packageJson[field]) {
+        for (let i in packageJson[field]) {
+          if (packageList.includes(i)) {
+            packageJson[field][i] = `fusionjs/${i}`;
+          }
+        }
+      }
+    });
+    fs.writeFileSync(packagePath, JSON.stringify(packageJson, null, '  '));
+
+    if (packageJson.dependencies) {
+      for (let i in packageJson.dependencies) {
+        if (packageList.includes(i)) {
+          packageJson.dependencies[i] = `fusionjs/${i}`;
+        }
+      }
+    }
+
     this.name = packageName;
     this.files = packageJson.files;
     this.scripts = packageJson.scripts;
@@ -172,9 +195,7 @@ function topologicallyBatchPackages(allPackages, {rejectCycles} = {}) {
 
 async function installBatchedPackages(batches) {
   // Install non-fusion dependencies for all packages first.
-  console.log(
-    chalk.bold.blue(`installing package.json non-fusion dependencies`)
-  );
+  console.log(chalk.bold.blue(`installing github linked dependencies`));
   for (let i = 0; i < batches.length; i++) {
     const batch = batches[i];
     await Promise.all(
@@ -182,61 +203,17 @@ async function installBatchedPackages(batches) {
         console.log(`${pkg.name} - installing dependencies`);
         shelljs.exec(
           `cd packages/${pkg.name} && \
-          yarn add ${Object.keys(pkg.nonFusionDependencies).join(' ')}`,
+          yarn`,
           {silent: true}
         );
-      })
-    );
-  }
-
-  console.log(chalk.bold.blue(`transpile and insert into dependent modules`));
-  for (let i = 0; i < batches.length; i++) {
-    const batch = batches[i];
-    console.log(
-      chalk.bold.green(
-        `Processing batch ${i} which contains ${batch.length} packages`
-      )
-    );
-
-    // Process each batch of dependencies in parallel.
-    await Promise.all(
-      batch.map(async pkg => {
-        // If we have a transpile script, transpile then copy to all other dependent packages
-        if (pkg.scripts.transpile) {
-          console.log(`${pkg.name} - transpiling`);
-          shelljs.exec(`cd packages/${pkg.name} && yarn transpile`);
-        }
-
-        // Copy into all dependents
-        for (let k = 0; k < pkg.dependents.length; k++) {
-          console.log(
-            `${pkg.name} - copying into dependent ${pkg.dependents[k]}`
+        pkg.fusionDependencies.forEach(fusionDep => {
+          shelljs.exec(
+            `cd packages/${pkg.name}/node_modules/${fusionDep} && \
+            yarn && \
+            yarn transpile`,
+            {silent: true}
           );
-          // If there are no package files copy everything
-          if (!pkg.files) {
-            shelljs.exec(`
-              cp -R packages/${pkg.name}/ packages/${
-              pkg.dependents[k]
-            }/node_modules/${pkg.name}`);
-          } else {
-            // Otherwise copy only the package files
-            shelljs.exec(
-              `mkdir -p packages/${pkg.dependents[k]}/node_modules/${pkg.name}`
-            );
-            ['package.json', ...pkg.files].forEach(file => {
-              const copyTo = `packages/${pkg.dependents[k]}/node_modules/${
-                pkg.name
-              }/${file}`;
-              // If file just copy
-              if (file.includes('.')) {
-                shelljs.exec(`cp packages/${pkg.name}/${file} ${copyTo}`);
-              } else {
-                // Handle folders
-                shelljs.exec(`cp -R packages/${pkg.name}/${file}/. ${copyTo}/`);
-              }
-            });
-          }
-        }
+        });
       })
     );
   }
