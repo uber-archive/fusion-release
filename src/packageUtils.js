@@ -170,27 +170,26 @@ function topologicallyBatchPackages(allPackages, {rejectCycles} = {}) {
   return batches;
 }
 
-function execAndOutput(command) {
-  console.log(`exec: ${command}`);
-  shelljs.exec(command);
-}
-
 async function installBatchedPackages(batches) {
   // Install non-fusion dependencies for all packages first.
+  console.log(
+    chalk.bold.blue(`installing package.json non-fusion dependencies`)
+  );
   for (let i = 0; i < batches.length; i++) {
     const batch = batches[i];
     await Promise.all(
       batch.map(async pkg => {
-        console.log(chalk.bold.blue(`${pkg.name} - installing dependencies`));
+        console.log(`${pkg.name} - installing dependencies`);
         shelljs.exec(
           `cd packages/${pkg.name} && \
-        npm install ${Object.keys(pkg.nonFusionDependencies).join(' ')}`,
+          yarn add ${Object.keys(pkg.nonFusionDependencies).join(' ')}`,
           {silent: true}
         );
       })
     );
   }
 
+  console.log(chalk.bold.blue(`transpile and insert into dependent modules`));
   for (let i = 0; i < batches.length; i++) {
     const batch = batches[i];
     console.log(
@@ -217,13 +216,13 @@ async function installBatchedPackages(batches) {
           );
           // If there are no package files copy everything
           if (!pkg.files) {
-            execAndOutput(`
+            shelljs.exec(`
               cp -R packages/${pkg.name}/ packages/${
               pkg.dependents[k]
             }/node_modules/${pkg.name}`);
           } else {
             // Otherwise copy only the package files
-            execAndOutput(
+            shelljs.exec(
               `mkdir -p packages/${pkg.dependents[k]}/node_modules/${pkg.name}`
             );
             ['package.json', ...pkg.files].forEach(file => {
@@ -232,16 +231,13 @@ async function installBatchedPackages(batches) {
               }/${file}`;
               // If file just copy
               if (file.includes('.')) {
-                execAndOutput(`cp packages/${pkg.name}/${file} ${copyTo}`);
+                shelljs.exec(`cp packages/${pkg.name}/${file} ${copyTo}`);
               } else {
                 // Handle folders
-                execAndOutput(`cp -R packages/${pkg.name}/${file}/ ${copyTo}`);
+                shelljs.exec(`cp -R packages/${pkg.name}/${file}/ ${copyTo}`);
               }
             });
           }
-          execAndOutput(
-            `ls -la packages/${pkg.dependents[k]}/node_modules/${pkg.name}/`
-          );
         }
       })
     );
