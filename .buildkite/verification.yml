@@ -16,7 +16,7 @@ steps:
   #   agents:
   #     queue: workers
   - name: "all packages - lint"
-    command: "./node_modules/.bin/lerna exec --scope fusion-* yarn lint"
+    command: "./node_modules/.bin/lerna exec --scope fusion-* --scope=browser-tests yarn lint"
     timeout_in_minutes: 60
     agents:
       queue: workers
@@ -24,7 +24,7 @@ steps:
       "docker-compose#v1.5.2":
         run: "fusion-release"
   - name: "all packages - flowtype"
-    command: "./node_modules/.bin/lerna exec --scope fusion-* yarn flow check"
+    command: "./node_modules/.bin/lerna exec --scope fusion-*  --scope=browser-tests yarn flow check"
     timeout_in_minutes: 60
     agents:
       queue: workers
