@@ -10,9 +10,9 @@
   "author": "Kevin Grandon <keving@uber.com>",
   "license": "MIT",
   "dependencies": {
-    "chalk": "^2.3.0",
-    "fusion-orchestrate": "^1.0.2",
-    "lerna": "^2.8.0",
+    "chalk": "^2.3.1",
+    "fusion-orchestrate": "^1.0.4",
+    "lerna": "^2.9.0",
     "shelljs": "^0.8.1"
   },
   "devDependencies": {
@@ -20,7 +20,7 @@
     "eslint": "4.17.0",
     "eslint-config-fusion": "1.0.0",
     "eslint-plugin-cup": "1.0.0",
-    "eslint-plugin-flowtype": "2.43.0",
+    "eslint-plugin-flowtype": "2.44.0",
     "eslint-plugin-import": "2.8.0",
     "eslint-plugin-prettier": "2.6.0",
     "eslint-plugin-react": "7.6.1"
