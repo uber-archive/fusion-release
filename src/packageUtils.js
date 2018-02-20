@@ -175,6 +175,13 @@ async function installBatchedPackages(batches) {
   console.log(
     chalk.bold.blue(`installing package.json non-fusion dependencies`)
   );
+
+  function generatePinnedDeps(deps) {
+    return Object.keys(deps)
+      .map(dep => `${dep}@${deps[dep]}`)
+      .join(' ');
+  }
+
   for (let i = 0; i < batches.length; i++) {
     const batch = batches[i];
     await Promise.all(
@@ -182,7 +189,7 @@ async function installBatchedPackages(batches) {
         console.log(`${pkg.name} - installing dependencies`);
         shelljs.exec(
           `cd packages/${pkg.name} && \
-          yarn add ${Object.keys(pkg.nonFusionDependencies).join(' ')}`,
+          yarn add ${generatePinnedDeps(pkg.nonFusionDependencies)}`,
           {silent: true}
         );
       })
