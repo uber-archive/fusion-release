@@ -24,13 +24,13 @@ class PackageGraphNode {
 class PackageGraph {
   constructor(packages) {
     this.nodes = [];
-    this.nodesByName = {};
+    this.nodesByPath = {};
 
     for (let p = 0; p < packages.length; p += 1) {
       const pkg = packages[p];
       const node = new PackageGraphNode(pkg);
       this.nodes.push(node);
-      this.nodesByName[pkg.name] = node;
+      this.nodesByPath[pkg.getPath()] = node;
     }
 
     for (let n = 0; n < this.nodes.length; n += 1) {
@@ -40,7 +40,7 @@ class PackageGraph {
 
       for (let d = 0; d < depNames.length; d += 1) {
         const depName = depNames[d];
-        const packageNode = this.nodesByName[depName];
+        const packageNode = this.nodesByPath[depName];
 
         if (packageNode) {
           node.dependencies.push(depName);
@@ -50,7 +50,7 @@ class PackageGraph {
   }
 
   get(packageName) {
-    return this.nodesByName[packageName];
+    return this.nodesByPath[packageName];
   }
 }
 
@@ -63,7 +63,9 @@ class Package {
       packageName,
       'package.json'
     ));
-    this.name = packageName;
+    const [owner, name] = packageName.split('/');
+    this.owner = owner;
+    this.name = name;
     this.files = packageJson.files;
     this.scripts = packageJson.scripts;
     // dependents are populated after we get all of the packages.
@@ -85,6 +87,9 @@ class Package {
         return obj;
       }, {});
   }
+  getPath() {
+    return `${this.owner}/${this.name}`;
+  }
 }
 
 function getPackages(packageList) {
@@ -97,14 +102,15 @@ function getPackages(packageList) {
   packages.forEach(pkg => {
     Object.keys(pkg.fusionDependencies).forEach(fusionDependency => {
       dependents[fusionDependency] = dependents[fusionDependency] || [];
-      dependents[fusionDependency].push(pkg.name);
+      dependents[fusionDependency].push(pkg.getPath());
     });
   });
 
   // Insert depentents information.
   packages.forEach(pkg => {
-    if (dependents[pkg.name]) {
-      pkg.dependents = dependents[pkg.name];
+    const key = pkg.getPath();
+    if (dependents[key]) {
+      pkg.dependents = dependents[key];
     }
   });
 
@@ -119,7 +125,7 @@ function topologicallyBatchPackages(allPackages, {rejectCycles} = {}) {
   // As packages are completed their names will be removed from this object.
   const refCounts = {};
   packages.forEach(pkg =>
-    packageGraph.get(pkg.name).dependencies.forEach(dep => {
+    packageGraph.get(pkg.getPath()).dependencies.forEach(dep => {
       if (!refCounts[dep]) {
         refCounts[dep] = 0;
       }
@@ -132,7 +138,7 @@ function topologicallyBatchPackages(allPackages, {rejectCycles} = {}) {
     // Get all packages that have no remaining dependencies within the repo
     // that haven't yet been picked.
     const batch = packages.filter(pkg => {
-      const node = packageGraph.get(pkg.name);
+      const node = packageGraph.get(pkg.getPath());
       return node.dependencies.filter(dep => refCounts[dep]).length === 0;
     });
 
@@ -140,9 +146,9 @@ function topologicallyBatchPackages(allPackages, {rejectCycles} = {}) {
     // then we've encountered a cycle in the dependency graph.  Run a
     // single-package batch with the package that has the most dependents.
     if (packages.length && !batch.length) {
-      const cyclePackageNames = packages.map(p => `"${p.name}"`);
+      const cyclePackagePaths = packages.map(p => `"${p.getPath()}"`);
       const message = `${'Encountered a cycle in the dependency graph.' +
-        'This may cause instability! Packages in cycle are: '}${cyclePackageNames.join(
+        'This may cause instability! Packages in cycle are: '}${cyclePackagePaths.join(
         ', '
       )}`;
 
@@ -154,7 +160,9 @@ function topologicallyBatchPackages(allPackages, {rejectCycles} = {}) {
       batch.push(
         packages.reduce(
           (a, b) =>
-            (refCounts[a.name] || 0) > (refCounts[b.name] || 0) ? a : b
+            (refCounts[a.getPath()] || 0) > (refCounts[b.getPath()] || 0)
+              ? a
+              : b
         )
       );
     }
@@ -162,7 +170,7 @@ function topologicallyBatchPackages(allPackages, {rejectCycles} = {}) {
     batches.push(batch);
 
     batch.forEach(pkg => {
-      delete refCounts[pkg.name];
+      delete refCounts[pkg.getPath()];
       packages.splice(packages.indexOf(pkg), 1);
     });
   }
@@ -186,9 +194,9 @@ async function installBatchedPackages(batches) {
     const batch = batches[i];
     await Promise.all(
       batch.map(async pkg => {
-        console.log(`${pkg.name} - installing dependencies`);
+        console.log(`${pkg.getPath()} - installing dependencies`);
         shelljs.exec(
-          `cd packages/${pkg.name} && \
+          `cd packages/${pkg.getPath()} && \
           yarn add ${generatePinnedDeps(pkg.nonFusionDependencies)}`,
           {silent: true}
         );
@@ -210,36 +218,40 @@ async function installBatchedPackages(batches) {
       batch.map(async pkg => {
         // If we have a transpile script, transpile then copy to all other dependent packages
         if (pkg.scripts.transpile) {
-          console.log(`${pkg.name} - transpiling`);
-          shelljs.exec(`cd packages/${pkg.name} && yarn transpile`);
+          console.log(`${pkg.getPath()} - transpiling`);
+          shelljs.exec(`cd packages/${pkg.getPath()} && yarn transpile`);
         }
 
         // Copy into all dependents
         for (let k = 0; k < pkg.dependents.length; k++) {
           console.log(
-            `${pkg.name} - copying into dependent ${pkg.dependents[k]}`
+            `${pkg.getPath()} - copying into dependent ${pkg.dependents[k]}`
           );
           // If there are no package files copy everything
           if (!pkg.files) {
             shelljs.exec(`
-              cp -R packages/${pkg.name}/ packages/${
+              cp -R packages/${pkg.getPath()}/ packages/${
               pkg.dependents[k]
-            }/node_modules/${pkg.name}`);
+            }/node_modules/${pkg.getPath()}`);
           } else {
             // Otherwise copy only the package files
             shelljs.exec(
-              `mkdir -p packages/${pkg.dependents[k]}/node_modules/${pkg.name}`
+              `mkdir -p packages/${
+                pkg.dependents[k]
+              }/node_modules/${pkg.getPath()}`
             );
             ['package.json', ...pkg.files].forEach(file => {
-              const copyTo = `packages/${pkg.dependents[k]}/node_modules/${
-                pkg.name
-              }/${file}`;
+              const copyTo = `packages/${
+                pkg.dependents[k]
+              }/node_modules/${pkg.getPath()}/${file}`;
               // If file just copy
               if (file.includes('.')) {
-                shelljs.exec(`cp packages/${pkg.name}/${file} ${copyTo}`);
+                shelljs.exec(`cp packages/${pkg.getPath()}/${file} ${copyTo}`);
               } else {
                 // Handle folders
-                shelljs.exec(`cp -R packages/${pkg.name}/${file}/. ${copyTo}/`);
+                shelljs.exec(
+                  `cp -R packages/${pkg.getPath()}/${file}/. ${copyTo}/`
+                );
               }
             });
           }
