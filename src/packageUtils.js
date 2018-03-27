@@ -55,10 +55,10 @@ class PackageGraph {
 }
 
 class Package {
-  constructor(monorepoFolder, packageName, packageList) {
+  constructor(workDir, packageName, packageList) {
     // eslint-disable-next-line import/no-dynamic-require
     const packageJson = require(path.join(
-      monorepoFolder,
+      workDir,
       packageName,
       'package.json'
     ));
@@ -92,9 +92,9 @@ class PackageUtils {
   }
 
   getPackages(packageList) {
-    const monorepoFolder = process.cwd() + '/' + this.dir;
+    const workDir = process.cwd() + '/' + this.dir;
     const packages = packageList.map(
-      packageName => new Package(monorepoFolder, packageName, packageList)
+      packageName => new Package(workDir, packageName, packageList)
     );
 
     // Gather dependents information.
