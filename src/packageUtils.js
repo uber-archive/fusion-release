@@ -55,11 +55,10 @@ class PackageGraph {
 }
 
 class Package {
-  constructor(packageName, packageList) {
+  constructor(monorepoFolder, packageName, packageList) {
     // eslint-disable-next-line import/no-dynamic-require
     const packageJson = require(path.join(
-      process.cwd(),
-      'packages',
+      monorepoFolder,
       packageName,
       'package.json'
     ));
@@ -87,168 +86,177 @@ class Package {
   }
 }
 
-function getPackages(packageList) {
-  const packages = packageList.map(
-    packageName => new Package(packageName, packageList)
-  );
+class PackageUtils {
+  constructor({dir}) {
+    this.dir = dir || 'packages';
+  }
 
-  // Gather dependents information.
-  const dependents = {};
-  packages.forEach(pkg => {
-    Object.keys(pkg.fusionDependencies).forEach(fusionDependency => {
-      dependents[fusionDependency] = dependents[fusionDependency] || [];
-      dependents[fusionDependency].push(pkg.name);
+  getPackages(packageList) {
+    const monorepoFolder = process.cwd() + '/' + this.dir;
+    const packages = packageList.map(
+      packageName => new Package(monorepoFolder, packageName, packageList)
+    );
+
+    // Gather dependents information.
+    const dependents = {};
+    packages.forEach(pkg => {
+      Object.keys(pkg.fusionDependencies).forEach(fusionDependency => {
+        dependents[fusionDependency] = dependents[fusionDependency] || [];
+        dependents[fusionDependency].push(pkg.name);
+      });
     });
-  });
 
-  // Insert depentents information.
-  packages.forEach(pkg => {
-    if (dependents[pkg.name]) {
-      pkg.dependents = dependents[pkg.name];
+    // Insert depentents information.
+    packages.forEach(pkg => {
+      if (dependents[pkg.name]) {
+        pkg.dependents = dependents[pkg.name];
+      }
+    });
+
+    return packages;
+  }
+
+  topologicallyBatchPackages(allPackages, {rejectCycles} = {}) {
+    const packages = [...allPackages];
+    const packageGraph = new PackageGraph(packages);
+
+    // This maps package names to the number of packages that depend on them.
+    // As packages are completed their names will be removed from this object.
+    const refCounts = {};
+    packages.forEach(pkg =>
+      packageGraph.get(pkg.name).dependencies.forEach(dep => {
+        if (!refCounts[dep]) {
+          refCounts[dep] = 0;
+        }
+        refCounts[dep] += 1;
+      })
+    );
+
+    const batches = [];
+    while (packages.length) {
+      // Get all packages that have no remaining dependencies within the repo
+      // that haven't yet been picked.
+      const batch = packages.filter(pkg => {
+        const node = packageGraph.get(pkg.name);
+        return node.dependencies.filter(dep => refCounts[dep]).length === 0;
+      });
+
+      // If we weren't able to find a package with no remaining dependencies,
+      // then we've encountered a cycle in the dependency graph.  Run a
+      // single-package batch with the package that has the most dependents.
+      if (packages.length && !batch.length) {
+        const cyclePackageNames = packages.map(p => `"${p.name}"`);
+        const message = `${'Encountered a cycle in the dependency graph.' +
+          'This may cause instability! Packages in cycle are: '}${cyclePackageNames.join(
+          ', '
+        )}`;
+
+        if (rejectCycles) {
+          throw new Error(message);
+        }
+        console.warn('ECYCLE', message);
+
+        batch.push(
+          packages.reduce(
+            (a, b) =>
+              (refCounts[a.name] || 0) > (refCounts[b.name] || 0) ? a : b
+          )
+        );
+      }
+
+      batches.push(batch);
+
+      batch.forEach(pkg => {
+        delete refCounts[pkg.name];
+        packages.splice(packages.indexOf(pkg), 1);
+      });
     }
-  });
 
-  return packages;
-}
+    return batches;
+  }
 
-function topologicallyBatchPackages(allPackages, {rejectCycles} = {}) {
-  const packages = [...allPackages];
-  const packageGraph = new PackageGraph(packages);
+  async installBatchedPackages(batches) {
+    // Install non-fusion dependencies for all packages first.
+    console.log(
+      chalk.bold.blue(`installing package.json non-fusion dependencies`)
+    );
 
-  // This maps package names to the number of packages that depend on them.
-  // As packages are completed their names will be removed from this object.
-  const refCounts = {};
-  packages.forEach(pkg =>
-    packageGraph.get(pkg.name).dependencies.forEach(dep => {
-      if (!refCounts[dep]) {
-        refCounts[dep] = 0;
-      }
-      refCounts[dep] += 1;
-    })
-  );
+    function generatePinnedDeps(deps) {
+      return Object.keys(deps)
+        .map(dep => `${dep}@${deps[dep]}`)
+        .join(' ');
+    }
 
-  const batches = [];
-  while (packages.length) {
-    // Get all packages that have no remaining dependencies within the repo
-    // that haven't yet been picked.
-    const batch = packages.filter(pkg => {
-      const node = packageGraph.get(pkg.name);
-      return node.dependencies.filter(dep => refCounts[dep]).length === 0;
-    });
-
-    // If we weren't able to find a package with no remaining dependencies,
-    // then we've encountered a cycle in the dependency graph.  Run a
-    // single-package batch with the package that has the most dependents.
-    if (packages.length && !batch.length) {
-      const cyclePackageNames = packages.map(p => `"${p.name}"`);
-      const message = `${'Encountered a cycle in the dependency graph.' +
-        'This may cause instability! Packages in cycle are: '}${cyclePackageNames.join(
-        ', '
-      )}`;
-
-      if (rejectCycles) {
-        throw new Error(message);
-      }
-      console.warn('ECYCLE', message);
-
-      batch.push(
-        packages.reduce(
-          (a, b) =>
-            (refCounts[a.name] || 0) > (refCounts[b.name] || 0) ? a : b
-        )
+    for (let i = 0; i < batches.length; i++) {
+      const batch = batches[i];
+      await Promise.all(
+        batch.map(async pkg => {
+          console.log(`${pkg.name} - installing dependencies`);
+          shelljs.exec(
+            `cd ${this.dir}/${pkg.name} && \
+          yarn add ${generatePinnedDeps(pkg.nonFusionDependencies)}`,
+            {silent: true}
+          );
+        })
       );
     }
 
-    batches.push(batch);
+    console.log(chalk.bold.blue(`transpile and insert into dependent modules`));
+    for (let i = 0; i < batches.length; i++) {
+      const batch = batches[i];
+      console.log(
+        chalk.bold.green(
+          `Processing batch ${i} which contains ${batch.length} packages`
+        )
+      );
 
-    batch.forEach(pkg => {
-      delete refCounts[pkg.name];
-      packages.splice(packages.indexOf(pkg), 1);
-    });
-  }
-
-  return batches;
-}
-
-async function installBatchedPackages(batches) {
-  // Install non-fusion dependencies for all packages first.
-  console.log(
-    chalk.bold.blue(`installing package.json non-fusion dependencies`)
-  );
-
-  function generatePinnedDeps(deps) {
-    return Object.keys(deps)
-      .map(dep => `${dep}@${deps[dep]}`)
-      .join(' ');
-  }
-
-  for (let i = 0; i < batches.length; i++) {
-    const batch = batches[i];
-    await Promise.all(
-      batch.map(async pkg => {
-        console.log(`${pkg.name} - installing dependencies`);
-        shelljs.exec(
-          `cd packages/${pkg.name} && \
-          yarn add ${generatePinnedDeps(pkg.nonFusionDependencies)}`,
-          {silent: true}
-        );
-      })
-    );
-  }
-
-  console.log(chalk.bold.blue(`transpile and insert into dependent modules`));
-  for (let i = 0; i < batches.length; i++) {
-    const batch = batches[i];
-    console.log(
-      chalk.bold.green(
-        `Processing batch ${i} which contains ${batch.length} packages`
-      )
-    );
-
-    // Process each batch of dependencies in parallel.
-    await Promise.all(
-      batch.map(async pkg => {
-        // If we have a transpile script, transpile then copy to all other dependent packages
-        if (pkg.scripts.transpile) {
-          console.log(`${pkg.name} - transpiling`);
-          shelljs.exec(`cd packages/${pkg.name} && yarn transpile`);
-        }
-
-        // Copy into all dependents
-        for (let k = 0; k < pkg.dependents.length; k++) {
-          console.log(
-            `${pkg.name} - copying into dependent ${pkg.dependents[k]}`
-          );
-          // If there are no package files copy everything
-          if (!pkg.files) {
-            shelljs.exec(`
-              cp -R packages/${pkg.name}/ packages/${
-              pkg.dependents[k]
-            }/node_modules/${pkg.name}`);
-          } else {
-            // Otherwise copy only the package files
-            shelljs.exec(
-              `mkdir -p packages/${pkg.dependents[k]}/node_modules/${pkg.name}`
-            );
-            ['package.json', ...pkg.files].forEach(file => {
-              const copyTo = `packages/${pkg.dependents[k]}/node_modules/${
-                pkg.name
-              }/${file}`;
-              // If file just copy
-              if (file.includes('.')) {
-                shelljs.exec(`cp packages/${pkg.name}/${file} ${copyTo}`);
-              } else {
-                // Handle folders
-                shelljs.exec(`cp -R packages/${pkg.name}/${file}/. ${copyTo}/`);
-              }
-            });
+      // Process each batch of dependencies in parallel.
+      await Promise.all(
+        batch.map(async pkg => {
+          // If we have a transpile script, transpile then copy to all other dependent packages
+          if (pkg.scripts.transpile) {
+            console.log(`${pkg.name} - transpiling`);
+            shelljs.exec(`cd ${this.dir}/${pkg.name} && yarn transpile`);
           }
-        }
-      })
-    );
+
+          // Copy into all dependents
+          for (let k = 0; k < pkg.dependents.length; k++) {
+            console.log(
+              `${pkg.name} - copying into dependent ${pkg.dependents[k]}`
+            );
+            // If there are no package files copy everything
+            if (!pkg.files) {
+              shelljs.exec(`
+              cp -R ${this.dir}/${pkg.name}/ ${this.dir}/${
+                pkg.dependents[k]
+              }/node_modules/${pkg.name}`);
+            } else {
+              // Otherwise copy only the package files
+              shelljs.exec(
+                `mkdir -p ${this.dir}/${pkg.dependents[k]}/node_modules/${
+                  pkg.name
+                }`
+              );
+              ['package.json', ...pkg.files].forEach(file => {
+                const copyTo = `${this.dir}/${pkg.dependents[k]}/node_modules/${
+                  pkg.name
+                }/${file}`;
+                // If file just copy
+                if (file.includes('.')) {
+                  shelljs.exec(`cp ${this.dir}/${pkg.name}/${file} ${copyTo}`);
+                } else {
+                  // Handle folders
+                  shelljs.exec(
+                    `cp -R ${this.dir}/${pkg.name}/${file}/. ${copyTo}/`
+                  );
+                }
+              });
+            }
+          }
+        })
+      );
+    }
   }
 }
 
-exports.getPackages = getPackages;
-exports.topologicallyBatchPackages = topologicallyBatchPackages;
-exports.installBatchedPackages = installBatchedPackages;
+module.exports = PackageUtils;
