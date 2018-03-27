@@ -44,6 +44,18 @@ const packageUtils = require('./packageUtils');
   const packages = packageUtils.getPackages(allPackages);
   console.log('Building batches.');
   const batches = packageUtils.topologicallyBatchPackages(packages);
+
+  if (process.env.VERBOSE) {
+    console.log(
+      'Buidling batches:',
+      JSON.stringify(
+        batches.map(batch => batch.map(pkg => pkg.name)),
+        null,
+        '  '
+      )
+    );
+  }
+
   console.log('Installing and transpiling batched package groups.');
   await packageUtils.installBatchedPackages(batches);
 })();
