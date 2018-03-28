@@ -5,8 +5,10 @@
   "main": "index.js",
   "scripts": {
     "lint": "eslint .",
-    "test": "jest .",
-    "clean": "rm -rf packages/*/"
+    "clean": "rm -rf packages/*/",
+    "bootstrap": "node src/index",
+    "verify": "lerna exec --concurrency 1 -- yarn test",
+    "test": "jest ."
   },
   "author": "Kevin Grandon <keving@uber.com>",
   "license": "MIT",
