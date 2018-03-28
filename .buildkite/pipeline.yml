@@ -16,3 +16,11 @@ steps:
         config: docker-compose.test.yml
     agents:
       queue: workers
+  - name: ':jest:'
+    command: yarn test
+    plugins:
+      'docker-compose#v1.7.0':
+        run: fusion-release-test
+        config: docker-compose.test.yml
+    agents:
+      queue: workers

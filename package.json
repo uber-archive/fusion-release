@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "lint": "eslint .",
+    "test": "jest .",
     "clean": "rm -rf packages/*/"
   },
   "author": "Kevin Grandon <keving@uber.com>",
@@ -17,12 +18,22 @@
   },
   "devDependencies": {
     "babel-eslint": "8.2.2",
+    "babel-jest": "^22.4.3",
     "eslint": "4.18.1",
     "eslint-config-fusion": "1.0.0",
     "eslint-plugin-cup": "1.0.0",
     "eslint-plugin-flowtype": "2.46.1",
     "eslint-plugin-import": "2.9.0",
     "eslint-plugin-prettier": "2.6.0",
-    "eslint-plugin-react": "7.7.0"
+    "eslint-plugin-react": "7.7.0",
+    "jest-cli": "^22.4.3"
+  },
+  "jest": {
+    "cache": false,
+    "testEnvironment": "node",
+    "transform": {
+      "^.+\\.jsx?$": "babel-jest"
+    },
+    "testRegex": "src/__tests__/.*.test.js"
   }
 }

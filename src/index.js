@@ -2,7 +2,7 @@
 /* eslint-disable no-console*/
 const shelljs = require('shelljs');
 const withEachRepo = require('fusion-orchestrate/src/utils/withEachRepo.js');
-const packageUtils = require('./packageUtils');
+const {bootstrap} = require('./bootstrap');
 
 (async function() {
   const ignoredRepos = [
@@ -40,22 +40,5 @@ const packageUtils = require('./packageUtils');
     }
   }
 
-  console.log('Initializing topologically sorted monorepo.');
-  const packages = packageUtils.getPackages(allPackages);
-  console.log('Building batches.');
-  const batches = packageUtils.topologicallyBatchPackages(packages);
-
-  if (process.env.VERBOSE) {
-    console.log(
-      'Buidling batches:',
-      JSON.stringify(
-        batches.map(batch => batch.map(pkg => pkg.name)),
-        null,
-        '  '
-      )
-    );
-  }
-
-  console.log('Installing and transpiling batched package groups.');
-  await packageUtils.installBatchedPackages(batches);
+  await bootstrap(allPackages);
 })();
