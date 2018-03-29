@@ -1,11 +1,11 @@
 {
-  "name": "a",
+  "name": "@private/d",
   "version": "1.0.0",
   "main": "dist/index.js",
   "files": ["dist"],
   "license": "MIT",
   "dependencies": {
-    "fusion-core": "^1.2.0"
+    "@private/c": "^1.0.0"
   },
   "scripts": {
     "transpile": "mkdir -p dist && cp index.js dist/"

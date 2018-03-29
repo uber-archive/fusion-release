@@ -46,10 +46,12 @@ const lstat = util.promisify(fs.lstat);
         const [, owner, name] = additionalRepos[i].match(
           /([a-z0-9\-_]+)\/([a-z0-9\-_]+)$/i
         );
-        shelljs.exec(`
-          cd packages &&
-          git clone --depth 1 ${additionalRepos[i]} ${owner}/${name}
-        `);
+        if (!await isFile(`packages/${owner}/${name}/package.json`)) {
+          shelljs.exec(`
+            cd packages &&
+            git clone --depth 1 ${additionalRepos[i]} ${owner}/${name}
+          `);
+        }
         allPackages.push(`${owner}/${name}`);
       }
     }

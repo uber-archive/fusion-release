@@ -55,16 +55,13 @@ class PackageGraph {
 }
 
 class Package {
-  constructor(workDir, packageName, packageList) {
-    // eslint-disable-next-line import/no-dynamic-require
-    const packageJson = require(path.join(
-      workDir,
-      packageName,
-      'package.json'
-    ));
+  constructor(workDir, packageName, packageJsons) {
+    const packageList = packageJsons.map(p => p.name);
+    const packageJson = PackageUtils.getPackageJson(workDir, packageName);
     const [owner, name] = packageName.split('/');
     this.owner = owner;
     this.name = name;
+    this.scopedPath = packageJson.name;
     this.files = packageJson.files;
     this.scripts = packageJson.scripts;
     // dependents are populated after we get all of the packages.
@@ -97,10 +94,18 @@ class PackageUtils {
     this.dir = dir || 'packages';
   }
 
+  static getPackageJson(workDir, packageName) {
+    // eslint-disable-next-line import/no-dynamic-require
+    return require(path.join(workDir, packageName, 'package.json'));
+  }
+
   getPackages(packageList) {
     const workDir = process.cwd() + '/' + this.dir;
+    const packageJsons = packageList.map(p =>
+      PackageUtils.getPackageJson(workDir, p)
+    );
     const packages = packageList.map(
-      packageName => new Package(workDir, packageName, packageList)
+      packageName => new Package(workDir, packageName, packageJsons)
     );
 
     // Gather dependents information.
@@ -114,7 +119,7 @@ class PackageUtils {
 
     // Insert depentents information.
     packages.forEach(pkg => {
-      const key = pkg.getPath();
+      const key = pkg.scopedPath;
       if (dependents[key]) {
         pkg.dependents = dependents[key];
       }
@@ -201,11 +206,10 @@ class PackageUtils {
       await Promise.all(
         batch.map(async pkg => {
           console.log(`${pkg.getPath()} - installing dependencies`);
-          shelljs.exec(
-            `cd ${this.dir}/${pkg.getPath()} && \
-          yarn add ${generatePinnedDeps(pkg.nonFusionDependencies)}`,
-            {silent: true}
-          );
+          const options = {silent: true};
+          const path = `${this.dir}/${pkg.getPath()}`;
+          const deps = generatePinnedDeps(pkg.nonFusionDependencies);
+          if (deps) shelljs.exec(`cd ${path} && yarn add ${deps}`, options);
         })
       );
     }
@@ -233,33 +237,25 @@ class PackageUtils {
             console.log(
               `${pkg.getPath()} - copying into dependent ${pkg.dependents[k]}`
             );
+            const dir = this.dir;
+            const dep = pkg.dependents[k];
+            const targetDir = `${dir}/${dep}/node_modules/${pkg.scopedPath}`;
+            shelljs.exec(`mkdir -p ${targetDir}`);
             // If there are no package files copy everything
             if (!pkg.files) {
-              shelljs.exec(`
-              cp -R ${this.dir}/${pkg.getPath()}/ ${this.dir}/${
-                pkg.dependents[k]
-              }/node_modules/${pkg.getPath()}`);
+              shelljs.exec(`cp -R ${targetDir}`);
             } else {
               // Otherwise copy only the package files
-              shelljs.exec(
-                `mkdir -p ${this.dir}/${
-                  pkg.dependents[k]
-                }/node_modules/${pkg.getPath()}`
-              );
               ['package.json', ...pkg.files].forEach(file => {
-                const copyTo = `${this.dir}/${
-                  pkg.dependents[k]
-                }/node_modules/${pkg.getPath()}/${file}`;
+                const copyTo = `${targetDir}/${file}`;
+                const sourceDir = `${this.dir}/${pkg.getPath()}/${file}`;
                 // If file just copy
                 if (file.includes('.')) {
-                  shelljs.exec(
-                    `cp ${this.dir}/${pkg.getPath()}/${file} ${copyTo}`
-                  );
+                  shelljs.exec(`cp ${sourceDir} ${copyTo}`);
                 } else {
                   // Handle folders
-                  shelljs.exec(
-                    `cp -R ${this.dir}/${pkg.getPath()}/${file}/. ${copyTo}/`
-                  );
+                  shelljs.exec(`mkdir -p ${copyTo}`);
+                  shelljs.exec(`cp -R ${sourceDir}/. ${copyTo}/`);
                 }
               });
             }

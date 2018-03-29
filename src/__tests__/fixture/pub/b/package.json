@@ -2,7 +2,9 @@
   "name": "b",
   "version": "1.0.0",
   "main": "dist/index.js",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "license": "MIT",
   "dependencies": {
     "a": "^1.0.0",

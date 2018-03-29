@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "lint": "eslint .",
-    "clean": "rm -rf packages/*/",
+    "clean": "rm -rf packages",
     "bootstrap": "node src/index",
     "verify": "lerna exec --concurrency 1 -- yarn test",
     "test": "jest ."
