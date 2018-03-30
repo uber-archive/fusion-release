@@ -24,13 +24,13 @@ class PackageGraphNode {
 class PackageGraph {
   constructor(packages) {
     this.nodes = [];
-    this.nodesByName = {};
+    this.nodesByPath = {};
 
     for (let p = 0; p < packages.length; p += 1) {
       const pkg = packages[p];
       const node = new PackageGraphNode(pkg);
       this.nodes.push(node);
-      this.nodesByName[pkg.name] = node;
+      this.nodesByPath[pkg.getPath()] = node;
     }
 
     for (let n = 0; n < this.nodes.length; n += 1) {
@@ -40,7 +40,7 @@ class PackageGraph {
 
       for (let d = 0; d < depNames.length; d += 1) {
         const depName = depNames[d];
-        const packageNode = this.nodesByName[depName];
+        const packageNode = this.nodesByPath[depName];
 
         if (packageNode) {
           node.dependencies.push(depName);
@@ -50,19 +50,18 @@ class PackageGraph {
   }
 
   get(packageName) {
-    return this.nodesByName[packageName];
+    return this.nodesByPath[packageName];
   }
 }
 
 class Package {
-  constructor(workDir, packageName, packageList) {
-    // eslint-disable-next-line import/no-dynamic-require
-    const packageJson = require(path.join(
-      workDir,
-      packageName,
-      'package.json'
-    ));
-    this.name = packageName;
+  constructor(workDir, packageName, packageJsons) {
+    const packageList = packageJsons.map(p => p.name);
+    const packageJson = PackageUtils.getPackageJson(workDir, packageName);
+    const [owner, name] = packageName.split('/');
+    this.owner = owner;
+    this.name = name;
+    this.scopedPath = packageJson.name;
     this.files = packageJson.files;
     this.scripts = packageJson.scripts;
     // dependents are populated after we get all of the packages.
@@ -84,6 +83,10 @@ class Package {
         return obj;
       }, {});
   }
+
+  getPath() {
+    return `${this.owner}/${this.name}`;
+  }
 }
 
 class PackageUtils {
@@ -91,10 +94,18 @@ class PackageUtils {
     this.dir = dir || 'packages';
   }
 
+  static getPackageJson(workDir, packageName) {
+    // eslint-disable-next-line import/no-dynamic-require
+    return require(path.join(workDir, packageName, 'package.json'));
+  }
+
   getPackages(packageList) {
     const workDir = process.cwd() + '/' + this.dir;
+    const packageJsons = packageList.map(p =>
+      PackageUtils.getPackageJson(workDir, p)
+    );
     const packages = packageList.map(
-      packageName => new Package(workDir, packageName, packageList)
+      packageName => new Package(workDir, packageName, packageJsons)
     );
 
     // Gather dependents information.
@@ -102,14 +113,15 @@ class PackageUtils {
     packages.forEach(pkg => {
       Object.keys(pkg.fusionDependencies).forEach(fusionDependency => {
         dependents[fusionDependency] = dependents[fusionDependency] || [];
-        dependents[fusionDependency].push(pkg.name);
+        dependents[fusionDependency].push(pkg.getPath());
       });
     });
 
     // Insert depentents information.
     packages.forEach(pkg => {
-      if (dependents[pkg.name]) {
-        pkg.dependents = dependents[pkg.name];
+      const key = pkg.scopedPath;
+      if (dependents[key]) {
+        pkg.dependents = dependents[key];
       }
     });
 
@@ -124,7 +136,7 @@ class PackageUtils {
     // As packages are completed their names will be removed from this object.
     const refCounts = {};
     packages.forEach(pkg =>
-      packageGraph.get(pkg.name).dependencies.forEach(dep => {
+      packageGraph.get(pkg.getPath()).dependencies.forEach(dep => {
         if (!refCounts[dep]) {
           refCounts[dep] = 0;
         }
@@ -137,7 +149,7 @@ class PackageUtils {
       // Get all packages that have no remaining dependencies within the repo
       // that haven't yet been picked.
       const batch = packages.filter(pkg => {
-        const node = packageGraph.get(pkg.name);
+        const node = packageGraph.get(pkg.getPath());
         return node.dependencies.filter(dep => refCounts[dep]).length === 0;
       });
 
@@ -145,9 +157,9 @@ class PackageUtils {
       // then we've encountered a cycle in the dependency graph.  Run a
       // single-package batch with the package that has the most dependents.
       if (packages.length && !batch.length) {
-        const cyclePackageNames = packages.map(p => `"${p.name}"`);
+        const cyclePackagePaths = packages.map(p => `"${p.getPath()}"`);
         const message = `${'Encountered a cycle in the dependency graph.' +
-          'This may cause instability! Packages in cycle are: '}${cyclePackageNames.join(
+          'This may cause instability! Packages in cycle are: '}${cyclePackagePaths.join(
           ', '
         )}`;
 
@@ -159,7 +171,9 @@ class PackageUtils {
         batch.push(
           packages.reduce(
             (a, b) =>
-              (refCounts[a.name] || 0) > (refCounts[b.name] || 0) ? a : b
+              (refCounts[a.getPath()] || 0) > (refCounts[b.getPath()] || 0)
+                ? a
+                : b
           )
         );
       }
@@ -167,7 +181,7 @@ class PackageUtils {
       batches.push(batch);
 
       batch.forEach(pkg => {
-        delete refCounts[pkg.name];
+        delete refCounts[pkg.getPath()];
         packages.splice(packages.indexOf(pkg), 1);
       });
     }
@@ -191,12 +205,11 @@ class PackageUtils {
       const batch = batches[i];
       await Promise.all(
         batch.map(async pkg => {
-          console.log(`${pkg.name} - installing dependencies`);
-          shelljs.exec(
-            `cd ${this.dir}/${pkg.name} && \
-          yarn add ${generatePinnedDeps(pkg.nonFusionDependencies)}`,
-            {silent: true}
-          );
+          console.log(`${pkg.getPath()} - installing dependencies`);
+          const options = {silent: true};
+          const path = `${this.dir}/${pkg.getPath()}`;
+          const deps = generatePinnedDeps(pkg.nonFusionDependencies);
+          if (deps) shelljs.exec(`cd ${path} && yarn add ${deps}`, options);
         })
       );
     }
@@ -215,40 +228,34 @@ class PackageUtils {
         batch.map(async pkg => {
           // If we have a transpile script, transpile then copy to all other dependent packages
           if (pkg.scripts.transpile) {
-            console.log(`${pkg.name} - transpiling`);
-            shelljs.exec(`cd ${this.dir}/${pkg.name} && yarn transpile`);
+            console.log(`${pkg.getPath()} - transpiling`);
+            shelljs.exec(`cd ${this.dir}/${pkg.getPath()} && yarn transpile`);
           }
 
           // Copy into all dependents
           for (let k = 0; k < pkg.dependents.length; k++) {
             console.log(
-              `${pkg.name} - copying into dependent ${pkg.dependents[k]}`
+              `${pkg.getPath()} - copying into dependent ${pkg.dependents[k]}`
             );
+            const dir = this.dir;
+            const dep = pkg.dependents[k];
+            const targetDir = `${dir}/${dep}/node_modules/${pkg.scopedPath}`;
+            shelljs.exec(`mkdir -p ${targetDir}`);
             // If there are no package files copy everything
             if (!pkg.files) {
-              shelljs.exec(`
-              cp -R ${this.dir}/${pkg.name}/ ${this.dir}/${
-                pkg.dependents[k]
-              }/node_modules/${pkg.name}`);
+              shelljs.exec(`cp -R ${targetDir}`);
             } else {
               // Otherwise copy only the package files
-              shelljs.exec(
-                `mkdir -p ${this.dir}/${pkg.dependents[k]}/node_modules/${
-                  pkg.name
-                }`
-              );
               ['package.json', ...pkg.files].forEach(file => {
-                const copyTo = `${this.dir}/${pkg.dependents[k]}/node_modules/${
-                  pkg.name
-                }/${file}`;
+                const copyTo = `${targetDir}/${file}`;
+                const sourceDir = `${this.dir}/${pkg.getPath()}/${file}`;
                 // If file just copy
                 if (file.includes('.')) {
-                  shelljs.exec(`cp ${this.dir}/${pkg.name}/${file} ${copyTo}`);
+                  shelljs.exec(`cp ${sourceDir} ${copyTo}`);
                 } else {
                   // Handle folders
-                  shelljs.exec(
-                    `cp -R ${this.dir}/${pkg.name}/${file}/. ${copyTo}/`
-                  );
+                  shelljs.exec(`mkdir -p ${copyTo}`);
+                  shelljs.exec(`cp -R ${sourceDir}/. ${copyTo}/`);
                 }
               });
             }

@@ -16,7 +16,7 @@ const bootstrap = async (allPackages, dir) => {
 
   if (process.env.VERBOSE) {
     console.log(
-      'Buidling batches:',
+      'Building batches:',
       JSON.stringify(
         batches.map(batch => batch.map(pkg => pkg.name)),
         null,
