@@ -1,0 +1,11 @@
+#!/bin/bash
+
+set -e
+
+echo "Exit status is ${BUILDKITE_COMMAND_EXIT_STATUS}"
+
+if [ $BUILDKITE_COMMAND_EXIT_STATUS != "0" ]; then
+  buildkite-agent meta-data set "status" "failure"
+else
+  echo "Step passed."
+fi

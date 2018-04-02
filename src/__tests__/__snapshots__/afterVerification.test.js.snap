@@ -1,0 +1,25 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`afterVerification failure - updates github status 1`] = `
+Object {
+  "context": "probot/release-verification",
+  "description": "Verification build resulted in success",
+  "owner": "TEST_OWNER",
+  "repo": "TEST_REPO",
+  "sha": "TEST_SHA",
+  "state": "success",
+  "target_url": "http://buildkite...",
+}
+`;
+
+exports[`afterVerification success - updates github status 1`] = `
+Object {
+  "context": "probot/release-verification",
+  "description": "Verification build resulted in failure",
+  "owner": "TEST_OWNER",
+  "repo": "TEST_REPO",
+  "sha": "TEST_SHA",
+  "state": "failure",
+  "target_url": "http://buildkite...",
+}
+`;
