@@ -34,7 +34,7 @@ jest.mock('@octokit/rest', () => {
 const octokit = require('@octokit/rest');
 const {__commandMock__} = require('shelljs');
 
-describe('afterVerification', () => {
+describe('pull request verification', () => {
   test('success - updates github status', async () => {
     process.env.BUILDKITE_BUILD_URL = 'http://buildkite...';
     __commandMock__.mockReturnValueOnce('success');
