@@ -288,3 +288,14 @@ steps:
     plugins:
       "docker-compose#v1.5.2":
         run: "fusion-release"
+  - wait: ~
+    continue_on_failure: true
+  - name: "Update Github status"
+    command: "bin/afterVerification"
+    branches: master
+    timeout_in_minutes: 60
+    agents:
+      queue: workers
+    plugins:
+      "docker-compose#v1.5.2":
+        run: "fusion-release"

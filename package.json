@@ -8,11 +8,12 @@
     "clean": "rm -rf packages",
     "bootstrap": "node src/index",
     "verify": "lerna exec --concurrency 1 -- yarn test",
-    "test": "jest ."
+    "test": "jest"
   },
   "author": "Kevin Grandon <keving@uber.com>",
   "license": "MIT",
   "dependencies": {
+    "@octokit/rest": "^15.2.6",
     "chalk": "^2.3.1",
     "fusion-orchestrate": "^1.0.4",
     "lerna": "^2.9.0",
@@ -36,6 +37,6 @@
     "transform": {
       "^.+\\.jsx?$": "babel-jest"
     },
-    "testRegex": "src/__tests__/.*.test.js"
+    "testRegex": "src/__tests__/.*.test.js$"
   }
 }
