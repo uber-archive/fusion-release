@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`afterVerification failure - updates github status 1`] = `
+exports[`pull request verification failure - updates github status 1`] = `
 Object {
   "context": "probot/release-verification",
   "description": "Verification build resulted in success",
@@ -12,7 +12,7 @@ Object {
 }
 `;
 
-exports[`afterVerification success - updates github status 1`] = `
+exports[`pull request verification success - updates github status 1`] = `
 Object {
   "context": "probot/release-verification",
   "description": "Verification build resulted in failure",

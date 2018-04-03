@@ -17,16 +17,16 @@ octokit.authenticate({
 });
 
 module.exports = async function afterVerification() {
+  const statusMetadata = shelljs.exec('buildkite-agent meta-data get "status"');
   const isPrerelease = shelljs.exec(
     'buildkite-agent meta-data get "prerelease"'
   );
 
-  // No need to update statuses for prereleases.
-  if (isPrerelease === 'true') {
+  // No need to update statuses for prereleases or when there is no status.
+  if (isPrerelease === 'true' || statusMetadata === '') {
     return;
   }
 
-  const statusMetadata = shelljs.exec('buildkite-agent meta-data get "status"');
   const sha = shelljs.exec(
     'buildkite-agent meta-data get "release-pr-head-sha"'
   );
