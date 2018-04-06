@@ -8,6 +8,7 @@ services:
       - BUILDKITE_BUILD_ID
       - BUILDKITE_BUILD_NUMBER
       - BUILDKITE_BUILD_URL
+      - GITHUB_TOKEN
     volumes:
       - '/var/run/docker.sock:/var/run/docker.sock'
       - /usr/bin/buildkite-agent:/usr/bin/buildkite-agent
