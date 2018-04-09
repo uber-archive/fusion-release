@@ -27,15 +27,19 @@ module.exports = async function afterVerification() {
     return;
   }
 
-  const sha = shelljs.exec(
-    'buildkite-agent meta-data get "release-pr-head-sha"'
+  const sha = String(
+    shelljs.exec('buildkite-agent meta-data get "release-pr-head-sha"')
   );
   const [owner, repo] = shelljs
     .exec('buildkite-agent meta-data get "release-pr-head-repo-full-name"')
     .split('/');
 
-  const newState = statusMetadata == 'failure' ? 'success' : 'failure';
+  const newState = statusMetadata == 'failure' ? 'failure' : 'success';
   console.log(`Updating Buildkite verification status to ${newState}`);
+  console.log(`Owner: ${owner}`);
+  console.log(`Repo: ${repo}`);
+  console.log(`Sha: ${sha}`);
+  console.log(`Targe URL: ${process.env.BUILDKITE_BUILD_URL}`);
 
   await octokit.repos.createStatus({
     owner,
