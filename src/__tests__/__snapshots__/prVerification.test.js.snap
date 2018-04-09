@@ -3,11 +3,11 @@
 exports[`pull request verification failure - updates github status 1`] = `
 Object {
   "context": "probot/release-verification",
-  "description": "Verification build resulted in success",
+  "description": "Verification build resulted in failure",
   "owner": "TEST_OWNER",
   "repo": "TEST_REPO",
   "sha": "TEST_SHA",
-  "state": "success",
+  "state": "failure",
   "target_url": "http://buildkite...",
 }
 `;
@@ -15,11 +15,11 @@ Object {
 exports[`pull request verification success - updates github status 1`] = `
 Object {
   "context": "probot/release-verification",
-  "description": "Verification build resulted in failure",
+  "description": "Verification build resulted in success",
   "owner": "TEST_OWNER",
   "repo": "TEST_REPO",
   "sha": "TEST_SHA",
-  "state": "failure",
+  "state": "success",
   "target_url": "http://buildkite...",
 }
 `;
