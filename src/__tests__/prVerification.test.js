@@ -12,7 +12,7 @@ jest.mock('shelljs', () => {
         return false;
       } else if (command.includes('"release-pr-head-sha"')) {
         return 'TEST_SHA';
-      } else if (command.includes('"release-pr-head-repo-full-name"')) {
+      } else if (command.includes('"release-pr-base-repo-full-name"')) {
         return 'TEST_OWNER/TEST_REPO';
       } else if (command.includes('"status"')) {
         return __commandMock__();

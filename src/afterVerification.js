@@ -31,7 +31,7 @@ module.exports = async function afterVerification() {
     shelljs.exec('buildkite-agent meta-data get "release-pr-head-sha"')
   );
   const [owner, repo] = shelljs
-    .exec('buildkite-agent meta-data get "release-pr-head-repo-full-name"')
+    .exec('buildkite-agent meta-data get "release-pr-base-repo-full-name"')
     .split('/');
 
   const newState = statusMetadata == 'failure' ? 'failure' : 'success';
