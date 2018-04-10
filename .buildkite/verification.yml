@@ -47,6 +47,14 @@ steps:
     plugins:
       "docker-compose#v1.5.2":
         run: "fusion-release"
+  - name: "fusion-plugin-react-helmet-async test"
+    command: "./node_modules/.bin/lerna exec --scope fusion-plugin-react-helmet-async yarn test"
+    timeout_in_minutes: 60
+    agents:
+      queue: workers
+    plugins:
+      "docker-compose#v1.5.2":
+        run: "fusion-release"
   - name: "fusion-plugin-universal-logger test"
     command: "./node_modules/.bin/lerna exec --scope fusion-plugin-universal-logger yarn test"
     timeout_in_minutes: 60
