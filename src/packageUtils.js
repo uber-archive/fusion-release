@@ -195,6 +195,30 @@ class PackageUtils {
       chalk.bold.blue(`installing package.json non-fusion dependencies`)
     );
 
+    const packageLookup = {};
+    batches.forEach(batch =>
+      batch.forEach(pkg => (packageLookup[pkg.scopedPath] = pkg))
+    );
+
+    /**
+     * Finds all missing dependencies that should be installed.
+     * These are dependencies that meet the following criteria.
+     * - A dependency of a fusion repo that we are linking.
+     * - Not listed in our package dependencies.
+     */
+    function findMissingDeps(pkg) {
+      const additionalDeps = {};
+      Object.keys(pkg.fusionDependencies).forEach(fusionDependency => {
+        const depPackage = packageLookup[fusionDependency];
+        Object.keys(depPackage.nonFusionDependencies).forEach(dep => {
+          if (!pkg.nonFusionDependencies[dep]) {
+            additionalDeps[dep] = depPackage.nonFusionDependencies[dep];
+          }
+        });
+      });
+      return additionalDeps;
+    }
+
     function generatePinnedDeps(deps) {
       return Object.keys(deps)
         .map(dep => `${dep}@${deps[dep]}`)
@@ -208,7 +232,10 @@ class PackageUtils {
           console.log(`${pkg.getPath()} - installing dependencies`);
           const options = {silent: true};
           const path = `${this.dir}/${pkg.getPath()}`;
-          const deps = generatePinnedDeps(pkg.nonFusionDependencies);
+          const deps = generatePinnedDeps({
+            ...pkg.nonFusionDependencies,
+            ...findMissingDeps(pkg),
+          });
           if (deps) shelljs.exec(`cd ${path} && yarn add ${deps}`, options);
         })
       );
