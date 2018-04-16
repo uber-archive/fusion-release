@@ -15,7 +15,7 @@ const lstat = util.promisify(fs.lstat);
     'fusion-plugin-service-worker',
   ];
 
-  shelljs.exec('mkdir packages');
+  shelljs.exec('mkdir -p packages');
 
   const allPackages = [];
   await withEachRepo(async (api, repo) => {
