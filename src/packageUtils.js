@@ -230,13 +230,15 @@ class PackageUtils {
       await Promise.all(
         batch.map(async pkg => {
           console.log(`${pkg.getPath()} - installing dependencies`);
-          const options = {silent: true};
           const path = `${this.dir}/${pkg.getPath()}`;
           const deps = generatePinnedDeps({
             ...pkg.nonFusionDependencies,
             ...findMissingDeps(pkg),
           });
-          if (deps) shelljs.exec(`cd ${path} && yarn add ${deps}`, options);
+          if (deps) {
+            console.log(`${pkg.getPath()} - installing dependencies: ${deps}`);
+            shelljs.exec(`cd ${path} && yarn add ${deps}`);
+          }
         })
       );
     }
