@@ -2,9 +2,7 @@
   "name": "a",
   "version": "1.0.0",
   "main": "dist/index.js",
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "license": "MIT",
   "dependencies": {
     "fusion-core": "^1.2.0",

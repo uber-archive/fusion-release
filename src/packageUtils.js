@@ -76,18 +76,10 @@ class Package {
         obj[key] = this.allDependencies[key];
         return obj;
       }, {});
-    this.nonFusionDependencies = Object.keys(packageJson.dependencies || {})
+    this.nonFusionDependencies = Object.keys(this.allDependencies)
       .filter(key => !packageList.includes(key))
       .reduce((obj, key) => {
-        obj[key] = packageJson.dependencies[key];
-        return obj;
-      }, {});
-    this.nonFusionDevDependencies = Object.keys(
-      packageJson.devDependencies || {}
-    )
-      .filter(key => !packageList.includes(key))
-      .reduce((obj, key) => {
-        obj[key] = packageJson.devDependencies[key];
+        obj[key] = this.allDependencies[key];
         return obj;
       }, {});
   }
@@ -214,13 +206,13 @@ class PackageUtils {
      * - A dependency of a fusion repo that we are linking.
      * - Not listed in our package dependencies.
      */
-    function findMissingDeps(pkg, type) {
+    function findMissingDeps(pkg) {
       const additionalDeps = {};
       Object.keys(pkg.fusionDependencies).forEach(fusionDependency => {
         const depPackage = packageLookup[fusionDependency];
-        Object.keys(depPackage[type]).forEach(dep => {
-          if (!pkg[type][dep]) {
-            additionalDeps[dep] = depPackage[type][dep];
+        Object.keys(depPackage.nonFusionDependencies).forEach(dep => {
+          if (!pkg.nonFusionDependencies[dep]) {
+            additionalDeps[dep] = depPackage.nonFusionDependencies[dep];
           }
         });
       });
@@ -241,17 +233,11 @@ class PackageUtils {
           const path = `${this.dir}/${pkg.getPath()}`;
           const deps = generatePinnedDeps({
             ...pkg.nonFusionDependencies,
-            ...findMissingDeps(pkg, 'nonFusionDependencies'),
+            ...findMissingDeps(pkg),
           });
           if (deps) {
-            shelljs.exec(`cd ${path} && yarn add ${deps}`);
-          }
-          const devDeps = generatePinnedDeps({
-            ...pkg.nonFusionDevDependencies,
-            ...findMissingDeps(pkg, 'nonFusionDevDependencies'),
-          });
-          if (devDeps) {
-            shelljs.exec(`cd ${path} && yarn add ${devDeps} --dev`);
+            console.log(`${pkg.getPath()} - installing dependencies: ${deps}`);
+            shelljs.exec(`cd ${path} && npm install ${deps} --no-save`);
           }
         })
       );
