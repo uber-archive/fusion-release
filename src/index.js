@@ -18,25 +18,29 @@ const lstat = util.promisify(fs.lstat);
   shelljs.exec('mkdir -p packages');
 
   const allPackages = [];
-  await withEachRepo(async (api, repo) => {
-    if (repo.upstream !== 'fusionjs' || ignoredRepos.includes(repo.name)) {
-      return;
-    }
-    allPackages.push(`${repo.upstream}/${repo.name}`);
-    const {upstream, name} = repo;
-    if (!await isFile(`packages/${repo.upstream}/${repo.name}/package.json`)) {
-      // eslint-disable-next-line no-console
-      console.log(`Cloning repository: ${repo.upstream}/${repo.name}`);
+  if (!process.env.IGNORE_CORE_REPOS) {
+    await withEachRepo(async (api, repo) => {
+      if (repo.upstream !== 'fusionjs' || ignoredRepos.includes(repo.name)) {
+        return;
+      }
+      allPackages.push(`${repo.upstream}/${repo.name}`);
+      const {upstream, name} = repo;
+      if (
+        !await isFile(`packages/${repo.upstream}/${repo.name}/package.json`)
+      ) {
+        // eslint-disable-next-line no-console
+        console.log(`Cloning repository: ${repo.upstream}/${repo.name}`);
 
-      shelljs.exec(`
-        cd packages &&
-        git clone --depth 1 https://github.com/${upstream}/${name}.git ${upstream}/${name}
-      `);
-    }
-    shelljs.exec('git reset --hard && git pull', {
-      cwd: `packages/${upstream}/${name}`,
+        shelljs.exec(`
+          cd packages &&
+          git clone --depth 1 https://github.com/${upstream}/${name}.git ${upstream}/${name}
+        `);
+      }
+      shelljs.exec('git reset --hard && git pull', {
+        cwd: `packages/${upstream}/${name}`,
+      });
     });
-  });
+  }
 
   // Process anything from the ADDITIONAL_REPOS env var
   if (process.env.ADDITIONAL_REPOS) {
