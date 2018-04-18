@@ -237,7 +237,7 @@ class PackageUtils {
           });
           if (deps) {
             console.log(`${pkg.getPath()} - installing dependencies: ${deps}`);
-            shelljs.exec(`cd ${path} && npm install ${deps} --no-save`);
+            shelljs.exec(`cd ${path} && yarn add ${deps}`);
           }
         })
       );
