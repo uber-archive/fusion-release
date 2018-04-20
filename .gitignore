@@ -3,3 +3,4 @@ packages/*/
 steps.json
 lerna-debug.log
 yarn-error.log
+packages

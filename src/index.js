@@ -30,6 +30,7 @@ const reset = `
 
   await exec('mkdir -p packages');
 
+  console.log(`Cloning repositories`);
   const allPackages = [];
   if (!process.env.IGNORE_CORE_REPOS) {
     await withEachRepo(async (api, repo) => {
@@ -40,10 +41,8 @@ const reset = `
       const {upstream, name} = repo;
       const dir = `${upstream}/${name}`;
       if (!await isFile(`packages/${dir}/package.json`)) {
-        console.log(`Cloning repository: ${dir}`);
-
-        const repo = `https://github.com/${dir}.git`;
-        await exec(`git clone --depth 1 ${repo} ${dir}`, options);
+        const url = `https://github.com/${dir}.git`;
+        await exec(`git clone --depth 1 ${url} ${dir}`, options);
       }
       await exec(reset, {cwd: `packages/${dir}`});
     });
@@ -57,15 +56,17 @@ const reset = `
         const parts = /([a-z0-9\-_]+)\/([a-z0-9\-_]+)$/i;
         const [, owner, name] = additionalRepos[i].match(parts);
         const dir = `${owner}/${name}`;
+        const url = additionalRepos[i];
         if (!await isFile(`packages/${dir}/package.json`)) {
-          const repo = additionalRepos[i];
-          await exec(`git clone --depth 1 ${repo} ${dir}`, options);
+          await exec(`git clone --depth 1 ${url} ${dir}`, options);
         }
         await exec(reset, {cwd: `packages/${dir}`});
         allPackages.push(dir);
       }
     }
   }
+
+  console.log('Installing dependencies');
   const deps = await allPackages.reduce(async (memo, dir) => {
     // eslint-disable-next-line import/no-dynamic-require
     const meta = JSON.parse(await readFile(`packages/${dir}/package.json`));
@@ -76,7 +77,6 @@ const reset = `
       ...(meta.peerDependencies || {}),
     };
   }, {});
-
   const data = JSON.stringify({
     name: 'verification',
     private: true,
@@ -86,22 +86,36 @@ const reset = `
   await exec(`yarn install`, options);
   //await exec(`yarn add ${Object.keys(deps).join(' ')}`, options);
 
-  // copy fusion packages after running `yarn add` because `yarn add` deletes things that are not in lock file
-  allPackages.forEach(async dir => {
-    // eslint-disable-next-line import/no-dynamic-require
-    const meta = JSON.parse(await readFile(`packages/${dir}/package.json`));
-    const parts = meta.name.split('/');
-    const name = parts.pop();
-    const cwd = ['packages/node_modules', ...parts].join('/');
-    await exec(`ln -s ../${dir}/ ${name}`, {cwd});
-    const dirs = await readDir('packages/node_modules');
-    await exec(`mkdir -p packages/${dir}/node_modules`);
-    for (const d of dirs) {
-      await exec(`ln -s ../../../node_modules/${d}/ ${d}`, {
-        cwd: `packages/${dir}/node_modules`,
-      });
-    }
-  });
+  // a horrible hack for a horrible bug... see https://github.com/facebook/flow/issues/1420
+  await exec(`
+    rm -f packages/node_modules/chrome-devtools-frontend/protocol.json &&
+    rm -f packages/node_modules/devtools-timeline-model/node_modules/chrome-devtools-frontend/protocol.json
+  `);
+
+  console.log(`Linking local dependencies`);
+  const transpilable = [];
+  await Promise.all(
+    allPackages.map(async dir => {
+      // eslint-disable-next-line import/no-dynamic-require
+      const meta = JSON.parse(await readFile(`packages/${dir}/package.json`));
+      const parts = meta.name.split('/');
+      const name = parts.pop();
+      const cwd = ['packages/node_modules', ...parts].join('/');
+      await exec(`ln -sf ../${dir}/ ${name}`, {cwd});
+      const dirs = await readDir('packages/node_modules');
+      await exec(`mkdir -p packages/${dir}/node_modules`);
+      for (const d of dirs) {
+        if (d === dir) continue;
+        const opts = {cwd: `packages/${dir}/node_modules`};
+        //await exec(`ln ../../../node_modules/${d}/ ${d}`, opts);
+        await exec(`cp -a ../../../node_modules/${d} ${d}`, opts);
+      }
+      if (meta.scripts && meta.scripts.transpile) transpilable.push(dir);
+    })
+  );
+  await Promise.all(
+    transpilable.map(dir => exec(`yarn transpile`, {cwd: `packages/${dir}`}))
+  );
 })();
 
 async function isFile(filename) {
