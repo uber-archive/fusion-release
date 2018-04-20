@@ -107,7 +107,6 @@ const reset = `
       for (const d of dirs) {
         if (d === dir) continue;
         const opts = {cwd: `packages/${dir}/node_modules`};
-        //await exec(`ln ../../../node_modules/${d}/ ${d}`, opts);
         await exec(`cp -a ../../../node_modules/${d} ${d}`, opts);
       }
       if (meta.scripts && meta.scripts.transpile) transpilable.push(dir);
