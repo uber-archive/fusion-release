@@ -10,6 +10,7 @@ const lstat = util.promisify(fs.lstat);
 const readDir = util.promisify(fs.readdir);
 const readFile = util.promisify(fs.readFile);
 const writeFile = util.promisify(fs.writeFile);
+const link = util.promisify(fs.link);
 
 const options = {cwd: 'packages'};
 const reset = `
@@ -102,13 +103,7 @@ const reset = `
       const name = parts.pop();
       const cwd = ['packages/node_modules', ...parts].join('/');
       await exec(`ln -sf ../${dir}/ ${name}`, {cwd});
-      const dirs = await readDir('packages/node_modules');
-      await exec(`mkdir -p packages/${dir}/node_modules`);
-      for (const d of dirs) {
-        if (d === dir) continue;
-        const opts = {cwd: `packages/${dir}/node_modules`};
-        await exec(`cp -a ../../../node_modules/${d} ${d}`, opts);
-      }
+      await link('packages/node_modules', `packages/${dir}/node_modules`); // warning: directory hard link
       if (meta.scripts && meta.scripts.transpile) transpilable.push(dir);
     })
   );
