@@ -103,7 +103,10 @@ const reset = `
       const name = parts.pop();
       const cwd = ['packages/node_modules', ...parts].join('/');
       await exec(`ln -sf ../${dir}/ ${name}`, {cwd});
-      await link('packages/node_modules', `packages/${dir}/node_modules`); // warning: directory hard link
+      // warning: directory hard link
+      await link('packages/node_modules', `packages/${dir}/node_modules`).catch(
+        console.log
+      );
       if (meta.scripts && meta.scripts.transpile) transpilable.push(dir);
     })
   );
