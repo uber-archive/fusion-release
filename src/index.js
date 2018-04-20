@@ -92,6 +92,7 @@ const reset = `
     rm -f packages/node_modules/chrome-devtools-frontend/protocol.json &&
     rm -f packages/node_modules/devtools-timeline-model/node_modules/chrome-devtools-frontend/protocol.json
   `);
+  await exec(`chmod -R 777 packages/node_modules`);
 
   console.log(`Linking local dependencies`);
   const transpilable = [];
