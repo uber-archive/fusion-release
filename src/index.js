@@ -104,17 +104,17 @@ const reset = `
       const cwd = ['packages/node_modules', ...parts].join('/');
       await exec(`ln -sf ../${dir}/ ${name}`, {cwd});
       // warning: directory hard link
-      // await link('packages/node_modules', `packages/${dir}/node_modules`);
-      //
+      await link('packages/node_modules', `packages/${dir}/node_modules`);
+      /*
       const dirs = await readDir('packages/node_modules');
       await exec(`mkdir -p packages/${dir}/node_modules`);
       for (const d of dirs) {
         if (d === dir) continue;
         const opts = {cwd: `packages/${dir}/node_modules`};
-        await exec(`ln -sf ../../../node_modules/${d}/ ${d}`, opts);
-        //await exec(`cp -a ../../../node_modules/${d} ${d}`, opts);
+        //await exec(`ln -sf ../../../node_modules/${d}/ ${d}`, opts);
+        await exec(`cp -a ../../../node_modules/${d} ${d}`, opts);
       }
-      //
+      */
       if (meta.scripts && meta.scripts.transpile) transpilable.push(dir);
     })
   );
