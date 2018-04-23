@@ -92,6 +92,21 @@ const reset = `
     rm -f packages/node_modules/chrome-devtools-frontend/protocol.json &&
     rm -f packages/node_modules/devtools-timeline-model/node_modules/chrome-devtools-frontend/protocol.json
   `);
+  const flowConfig = `[ignore]
+
+[include]
+
+[libs]
+./fusionjs/fusion-core/flow.js
+./fusionjs/fusion-core/flow-typed
+./fusionjs/fusion-test-utils/flow-typed/tape-cup_v4.x.x.js
+
+[lints]
+
+[options]
+
+[strict]`;
+  await writeFile('packages/.flowconfig', flowConfig, 'utf-8');
 
   console.log(`Linking local dependencies`);
   const transpilable = [];
@@ -102,19 +117,21 @@ const reset = `
       const parts = meta.name.split('/');
       const name = parts.pop();
       const cwd = ['packages/node_modules', ...parts].join('/');
-      await exec(`ln -sf ../${dir}/ ${name}`, {cwd});
-      // warning: directory hard link
-      await link('packages/node_modules', `packages/${dir}/node_modules`);
-      /*
+      await exec(`rm -rf ${name} && ln -sf ../${dir}/ ${name}`, {cwd});
+
       const dirs = await readDir('packages/node_modules');
       await exec(`mkdir -p packages/${dir}/node_modules`);
+      if (await isFile(`packages/${dir}/.flowconfig`)) {
+        await exec(
+          `mv packages/${dir}/.flowconfig packages/${dir}/.flowconfig.tmp`
+        );
+      }
       for (const d of dirs) {
         if (d === dir) continue;
         const opts = {cwd: `packages/${dir}/node_modules`};
-        //await exec(`ln -sf ../../../node_modules/${d}/ ${d}`, opts);
-        await exec(`cp -a ../../../node_modules/${d} ${d}`, opts);
+        await exec(`ln -sf ../../../node_modules/${d}/ ${d}`, opts);
       }
-      */
+
       if (meta.scripts && meta.scripts.transpile) transpilable.push(dir);
     })
   );

@@ -24,14 +24,14 @@ steps:
     plugins:
       "docker-compose#v2.0.0":
         run: "fusion-release"
-  # - name: "all packages - flowtype"
-  #   command: "./node_modules/.bin/lerna exec --scope fusion-*  --scope=browser-tests yarn flow check"
-  #   timeout_in_minutes: 60
-  #   agents:
-  #     queue: workers
-  #   plugins:
-  #     "docker-compose#v2.0.0":
-  #       run: "fusion-release"
+  - name: "all packages - flowtype"
+    command: "node src/checkTypes"
+    timeout_in_minutes: 60
+    agents:
+      queue: workers
+    plugins:
+      "docker-compose#v2.0.0":
+        run: "fusion-release"
   - name: "fusion-plugin-http-handler test"
     command: "./node_modules/.bin/lerna exec --scope fusion-plugin-http-handler yarn test"
     timeout_in_minutes: 60
