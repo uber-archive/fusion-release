@@ -121,11 +121,6 @@ const reset = `
 
       const dirs = await readDir('packages/node_modules');
       await exec(`mkdir -p packages/${dir}/node_modules`);
-      if (await isFile(`packages/${dir}/.flowconfig`)) {
-        await exec(
-          `mv packages/${dir}/.flowconfig packages/${dir}/.flowconfig.tmp`
-        );
-      }
       for (const d of dirs) {
         if (d === dir) continue;
         const opts = {cwd: `packages/${dir}/node_modules`};
