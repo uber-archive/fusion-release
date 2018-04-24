@@ -1,6 +1,6 @@
 {
   "name": "fusion-release",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Validates and releases fusion packages",
   "main": "index.js",
   "scripts": {
