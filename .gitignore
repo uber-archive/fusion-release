@@ -4,3 +4,9 @@ steps.json
 lerna-debug.log
 yarn-error.log
 packages
+src/__tests__/fixture/.flowconfig
+src/__tests__/fixture/node_modules
+src/__tests__/fixture/**/node_modules
+src/__tests__/fixture/package.json
+src/__tests__/fixture/yarn.lock
+

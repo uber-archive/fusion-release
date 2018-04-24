@@ -19,7 +19,7 @@ async function run() {
   );
   await rename('.flowconfig.tmp', '.flowconfig');
   console.log(stdout);
-  if (!stdout.match(/Done in/)) process.exit(1);
+  if (stdout.match(/Found [1-9]/)) process.exit(1);
 }
 async function rename(a, b) {
   const groups = await readDir('packages');

@@ -72,9 +72,11 @@ module.exports.bootstrap = async (allPackages, root = 'packages') => {
   const options = {cwd: root};
 
   console.log('Installing dependencies');
+  const names = [];
   const deps = await allPackages.reduce(async (memo, dir) => {
     // eslint-disable-next-line import/no-dynamic-require
     const meta = JSON.parse(await readFile(`${root}/${dir}/package.json`));
+    names.push(meta.name);
     return {
       ...(await memo),
       ...(meta.dependencies || {}),
@@ -83,7 +85,7 @@ module.exports.bootstrap = async (allPackages, root = 'packages') => {
     };
   }, {});
   for (const key in deps) {
-    if (key.match(/fusion-/)) delete deps[key];
+    if (names.indexOf(key) > -1) delete deps[key];
   }
   const data = JSON.stringify({
     name: 'verification',
@@ -121,9 +123,13 @@ module.exports.bootstrap = async (allPackages, root = 'packages') => {
       // eslint-disable-next-line import/no-dynamic-require
       const meta = JSON.parse(await readFile(`${root}/${dir}/package.json`));
       const parts = meta.name.split('/');
+      const isNamespaced = parts.length === 2;
       const name = parts.pop();
-      const cwd = [`${root}/node_modules`, ...parts].join('/');
-      await exec(`rm -rf ${name} && ln -sf ../${dir}/ ${name}`, {cwd});
+      const rest = isNamespaced ? parts[0] : '';
+      const cwd = [`${root}/node_modules`, rest].join('/');
+      if (isNamespaced) await exec(`mkdir -p ${cwd}`);
+      const rel = isNamespaced ? '../..' : '..';
+      await exec(`rm -rf ${name} && ln -sf ${rel}/${dir}/ ${name}`, {cwd});
 
       const dirs = await readDir(`${root}/node_modules`);
       await exec(`mkdir -p ${root}/${dir}/node_modules`);
