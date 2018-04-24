@@ -39,7 +39,7 @@ module.exports.getPackages = async (root = 'packages') => {
       allPackages.push(`${repo.upstream}/${repo.name}`);
       const {upstream, name} = repo;
       const dir = `${upstream}/${name}`;
-      if (!await isFile(`${root}/${dir}/package.json`)) {
+      if (!(await isFile(`${root}/${dir}/package.json`))) {
         const url = `https://github.com/${dir}.git`;
         await exec(`git clone --depth 1 ${url} ${dir}`, options);
       }
@@ -56,7 +56,7 @@ module.exports.getPackages = async (root = 'packages') => {
         const [, owner, name] = additionalRepos[i].match(parts);
         const dir = `${owner}/${name}`;
         const url = additionalRepos[i];
-        if (!await isFile(`${root}/${dir}/package.json`)) {
+        if (!(await isFile(`${root}/${dir}/package.json`))) {
           await exec(`git clone --depth 1 ${url} ${dir}`, options);
         }
         await exec(reset, {cwd: `${root}/${dir}`});
