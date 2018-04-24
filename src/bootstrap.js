@@ -1,32 +1,164 @@
 /* eslint-env node */
 /* eslint-disable no-console*/
+const fs = require('fs');
+const util = require('util');
+const proc = require('child_process');
+const withEachRepo = require('fusion-orchestrate/src/utils/withEachRepo.js');
 
-const PackageUtils = require('./packageUtils');
+const exec = util.promisify(proc.exec);
+const lstat = util.promisify(fs.lstat);
+const readDir = util.promisify(fs.readdir);
+const readFile = util.promisify(fs.readFile);
+const writeFile = util.promisify(fs.writeFile);
 
-/**
- * Bootstraps the monorepo.
- */
-const bootstrap = async (allPackages, dir) => {
-  const packageUtils = new PackageUtils({dir});
+module.exports.getPackages = async (root = 'packages') => {
+  const options = {cwd: root};
+  const reset = `
+    git reset --hard &&
+    git clean -xdf &&
+    git fetch &&
+    git checkout origin/master &&
+    git branch -D master &&
+    git checkout -b master
+  `;
+  const ignoredRepos = [
+    'probot-app-workflow',
+    'fusion-release',
+    'fusion-plugin-service-worker',
+  ];
 
-  console.log('Initializing topologically sorted monorepo.');
-  const packages = packageUtils.getPackages(allPackages);
-  console.log('Building batches.');
-  const batches = packageUtils.topologicallyBatchPackages(packages);
+  await exec(`mkdir -p ${root}`);
 
-  if (process.env.VERBOSE) {
-    console.log(
-      'Building batches:',
-      JSON.stringify(
-        batches.map(batch => batch.map(pkg => pkg.name)),
-        null,
-        '  '
-      )
-    );
+  console.log(`Cloning repositories`);
+  const allPackages = [];
+  if (!process.env.IGNORE_CORE_REPOS) {
+    await withEachRepo(async (api, repo) => {
+      if (repo.upstream !== 'fusionjs' || ignoredRepos.includes(repo.name)) {
+        return;
+      }
+      allPackages.push(`${repo.upstream}/${repo.name}`);
+      const {upstream, name} = repo;
+      const dir = `${upstream}/${name}`;
+      if (!(await isFile(`${root}/${dir}/package.json`))) {
+        const url = `https://github.com/${dir}.git`;
+        await exec(`git clone --depth 1 ${url} ${dir}`, options);
+      }
+      await exec(reset, {cwd: `${root}/${dir}`});
+    });
   }
 
-  console.log('Installing and transpiling batched package groups.');
-  await packageUtils.installBatchedPackages(batches);
+  // Process anything from the ADDITIONAL_REPOS env var
+  if (process.env.ADDITIONAL_REPOS) {
+    const additionalRepos = process.env.ADDITIONAL_REPOS.split(',');
+    if (additionalRepos && additionalRepos.length) {
+      for (let i = 0; i < additionalRepos.length; i++) {
+        const parts = /([a-z0-9\-_]+)\/([a-z0-9\-_]+)$/i;
+        const [, owner, name] = additionalRepos[i].match(parts);
+        const dir = `${owner}/${name}`;
+        const url = additionalRepos[i];
+        if (!(await isFile(`${root}/${dir}/package.json`))) {
+          await exec(`git clone --depth 1 ${url} ${dir}`, options);
+        }
+        await exec(reset, {cwd: `${root}/${dir}`});
+        allPackages.push(dir);
+      }
+    }
+  }
+
+  return allPackages;
 };
 
-module.exports.bootstrap = bootstrap;
+module.exports.bootstrap = async (allPackages, root = 'packages') => {
+  const options = {cwd: root};
+
+  console.log('Installing dependencies');
+  const names = [];
+  const deps = await allPackages.reduce(async (memo, dir) => {
+    // eslint-disable-next-line import/no-dynamic-require
+    const meta = JSON.parse(await readFile(`${root}/${dir}/package.json`));
+    names.push(meta.name);
+    return {
+      ...(await memo),
+      ...(meta.dependencies || {}),
+      ...(meta.devDependencies || {}),
+      ...(meta.peerDependencies || {}),
+    };
+  }, {});
+  for (const key in deps) {
+    if (names.indexOf(key) > -1) delete deps[key];
+  }
+  const data = JSON.stringify({
+    name: 'verification',
+    private: true,
+    dependencies: deps,
+  });
+  await writeFile(`${root}/package.json`, data, 'utf-8');
+  await exec(`yarn install`, options);
+
+  // a horrible hack for a horrible bug... see https://github.com/facebook/flow/issues/1420
+  await exec(`
+    rm -f ${root}/node_modules/chrome-devtools-frontend/protocol.json &&
+    rm -f ${root}/node_modules/devtools-timeline-model/node_modules/chrome-devtools-frontend/protocol.json
+  `);
+  const flowConfig = `[ignore]
+
+[include]
+
+[libs]
+./fusionjs/fusion-core/flow.js
+./fusionjs/fusion-core/flow-typed
+./fusionjs/fusion-test-utils/flow-typed/tape-cup_v4.x.x.js
+
+[lints]
+
+[options]
+
+[strict]`;
+  await writeFile(`${root}/.flowconfig`, flowConfig, 'utf-8');
+
+  console.log(`Linking local dependencies`);
+  const transpilable = [];
+  await Promise.all(
+    allPackages.map(async dir => {
+      // eslint-disable-next-line import/no-dynamic-require
+      const meta = JSON.parse(await readFile(`${root}/${dir}/package.json`));
+      const parts = meta.name.split('/');
+      const isNamespaced = parts.length === 2;
+      const name = parts.pop();
+      const rest = isNamespaced ? parts[0] : '';
+      const cwd = [`${root}/node_modules`, rest].join('/');
+      if (isNamespaced) await exec(`mkdir -p ${cwd}`);
+      const rel = isNamespaced ? '../..' : '..';
+      await exec(`rm -rf ${name} && ln -sf ${rel}/${dir}/ ${name}`, {cwd});
+
+      const dirs = await readDir(`${root}/node_modules`);
+      await exec(`mkdir -p ${root}/${dir}/node_modules`);
+      for (const d of dirs) {
+        if (d === dir) continue;
+        const opts = {cwd: `${root}/${dir}/node_modules`};
+        await exec(`ln -sf ../../../node_modules/${d}/ ${d}`, opts);
+      }
+
+      if (meta.bin) {
+        for (const key in meta.bin) {
+          await exec(`ln -sf ../../${dir}/${meta.bin[key]} ${key}`, {
+            cwd: `${root}/node_modules/.bin/`,
+          });
+        }
+      }
+
+      if (meta.scripts && meta.scripts.transpile) transpilable.push(dir);
+    })
+  );
+  await Promise.all(
+    transpilable.map(dir => exec(`yarn transpile`, {cwd: `${root}/${dir}`}))
+  );
+};
+
+async function isFile(filename) {
+  try {
+    return (await lstat(filename)).isFile();
+  } catch (e) {
+    return false;
+  }
+}

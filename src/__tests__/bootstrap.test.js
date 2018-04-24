@@ -5,7 +5,7 @@ const fs = require('fs');
 const shelljs = require('shelljs');
 const {bootstrap} = require('../bootstrap');
 
-describe('botstrap', () => {
+describe('bootstrap', () => {
   test('builds and installs modules correctly', async () => {
     const allPackages = ['pub/a', 'pub/b'];
 
@@ -20,7 +20,7 @@ describe('botstrap', () => {
 
     // Should bring along package dependencies (currently the nop module)
     expect(
-      fs.existsSync(__dirname + '/fixture/pub/b/node_modules/nop/index.js')
+      fs.existsSync(__dirname + '/fixture/node_modules/nop/index.js')
     ).toBe(true);
   });
   test('builds and installs scoped packages', async () => {
