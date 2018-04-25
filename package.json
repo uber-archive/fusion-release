@@ -1,6 +1,6 @@
 {
   "name": "fusion-release",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Validates and releases fusion packages",
   "main": "src/bootstrap.js",
   "scripts": {
