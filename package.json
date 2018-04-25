@@ -2,7 +2,7 @@
   "name": "fusion-release",
   "version": "0.0.5",
   "description": "Validates and releases fusion packages",
-  "main": "index.js",
+  "main": "src/bootstrap.js",
   "scripts": {
     "lint": "eslint .",
     "clean": "rm -rf packages",

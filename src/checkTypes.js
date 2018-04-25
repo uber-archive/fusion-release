@@ -5,7 +5,6 @@ const util = require('util');
 const proc = require('child_process');
 const fs = require('fs');
 
-const exec = util.promisify(proc.exec);
 const readDir = util.promisify(fs.readdir);
 const lstat = util.promisify(fs.lstat);
 const mv = util.promisify(fs.rename);
@@ -14,12 +13,12 @@ run();
 
 async function run() {
   await rename('.flowconfig', '.flowconfig.tmp');
-  const {stdout} = await exec(
-    `yarn lerna exec --scope fusion-* --scope=browser-tests yarn flow check`
-  );
-  await rename('.flowconfig.tmp', '.flowconfig');
-  console.log(stdout);
-  if (stdout.match(/Found [1-9]/)) process.exit(1);
+  const command = `yarn lerna exec --scope fusion-* --scope=browser-tests yarn flow check`;
+  const [cmd, ...args] = command.split(' ');
+  proc.spawn(cmd, args, {stdio: 'inherit'}).on('close', ({code}) => {
+    rename('.flowconfig.tmp', '.flowconfig');
+    if (code) process.exit(code);
+  });
 }
 async function rename(a, b) {
   const groups = await readDir('packages');
