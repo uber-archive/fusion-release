@@ -11,7 +11,10 @@ const readDir = util.promisify(fs.readdir);
 const readFile = util.promisify(fs.readFile);
 const writeFile = util.promisify(fs.writeFile);
 
-module.exports.getPackages = async (root = 'packages') => {
+module.exports.getPackages = async (
+  root = 'packages',
+  additionalRepos = []
+) => {
   const options = {cwd: root};
   const reset = `
     git reset --hard &&
@@ -31,25 +34,22 @@ module.exports.getPackages = async (root = 'packages') => {
 
   console.log(`Cloning repositories`);
   const allPackages = [];
-  if (!process.env.IGNORE_CORE_REPOS) {
-    await withEachRepo(async (api, repo) => {
-      if (repo.upstream !== 'fusionjs' || ignoredRepos.includes(repo.name)) {
-        return;
-      }
-      allPackages.push(`${repo.upstream}/${repo.name}`);
-      const {upstream, name} = repo;
-      const dir = `${upstream}/${name}`;
-      if (!(await isFile(`${root}/${dir}/package.json`))) {
-        const url = `https://github.com/${dir}.git`;
-        await exec(`git clone --depth 1 ${url} ${dir}`, options);
-      }
-      await exec(reset, {cwd: `${root}/${dir}`});
-    });
-  }
+  await withEachRepo(async (api, repo) => {
+    if (repo.upstream !== 'fusionjs' || ignoredRepos.includes(repo.name)) {
+      return;
+    }
+    allPackages.push(`${repo.upstream}/${repo.name}`);
+    const {upstream, name} = repo;
+    const dir = `${upstream}/${name}`;
+    if (!(await isFile(`${root}/${dir}/package.json`))) {
+      const url = `https://github.com/${dir}.git`;
+      await exec(`git clone --depth 1 ${url} ${dir}`, options);
+    }
+    await exec(reset, {cwd: `${root}/${dir}`});
+  });
 
   // Process anything from the ADDITIONAL_REPOS env var
-  if (process.env.ADDITIONAL_REPOS) {
-    const additionalRepos = process.env.ADDITIONAL_REPOS.split(',');
+  if (additionalRepos) {
     if (additionalRepos && additionalRepos.length) {
       for (let i = 0; i < additionalRepos.length; i++) {
         const parts = /([a-z0-9\-_]+)\/([a-z0-9\-_]+)$/i;
@@ -129,21 +129,27 @@ module.exports.bootstrap = async (allPackages, root = 'packages') => {
       const cwd = [`${root}/node_modules`, rest].join('/');
       if (isNamespaced) await exec(`mkdir -p ${cwd}`);
       const rel = isNamespaced ? '../..' : '..';
-      await exec(`rm -rf ${name} && ln -sf ${rel}/${dir}/ ${name}`, {cwd});
+      if (!(await isSymlink(`${cwd}/${name}`))) {
+        await exec(`ln -sfn ${rel}/${dir}/ ${name}`, {cwd});
+      }
 
       const dirs = await readDir(`${root}/node_modules`);
       await exec(`mkdir -p ${root}/${dir}/node_modules`);
       for (const d of dirs) {
         if (d === dir) continue;
         const opts = {cwd: `${root}/${dir}/node_modules`};
-        await exec(`ln -sf ../../../node_modules/${d}/ ${d}`, opts);
+        if (!(await isSymlink(`${opts}/${d}`))) {
+          await exec(`ln -sfn ../../../node_modules/${d}/ ${d}`, opts);
+        }
       }
 
       if (meta.bin) {
         for (const key in meta.bin) {
-          await exec(`ln -sf ../../${dir}/${meta.bin[key]} ${key}`, {
-            cwd: `${root}/node_modules/.bin/`,
-          });
+          if (!(await isSymlink(`${root}/node_modules/.bin/${key}`))) {
+            await exec(`ln -sfn ../../${dir}/${meta.bin[key]} ${key}`, {
+              cwd: `${root}/node_modules/.bin/`,
+            });
+          }
         }
       }
 
@@ -158,6 +164,14 @@ module.exports.bootstrap = async (allPackages, root = 'packages') => {
 async function isFile(filename) {
   try {
     return (await lstat(filename)).isFile();
+  } catch (e) {
+    return false;
+  }
+}
+
+async function isSymlink(filename) {
+  try {
+    return (await lstat(filename)).isSymbolicLink();
   } catch (e) {
     return false;
   }
