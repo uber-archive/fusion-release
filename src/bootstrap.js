@@ -44,8 +44,7 @@ module.exports.getPackages = async (
     if (!(await isFile(`${root}/${dir}/package.json`))) {
       const url = `https://github.com/${dir}.git`;
       await exec(`git clone --depth 1 ${url} ${dir}`, options);
-    }
-    await exec(reset, {cwd: `${root}/${dir}`});
+    } else await exec(reset, {cwd: `${root}/${dir}`});
   });
 
   // Process anything from the ADDITIONAL_REPOS env var
@@ -58,8 +57,7 @@ module.exports.getPackages = async (
         const url = additionalRepos[i];
         if (!(await isFile(`${root}/${dir}/package.json`))) {
           await exec(`git clone --depth 1 ${url} ${dir}`, options);
-        }
-        await exec(reset, {cwd: `${root}/${dir}`});
+        } else await exec(reset, {cwd: `${root}/${dir}`});
         allPackages.push(dir);
       }
     }
@@ -153,12 +151,37 @@ module.exports.bootstrap = async (allPackages, root = 'packages') => {
         }
       }
 
-      if (meta.scripts && meta.scripts.transpile) transpilable.push(dir);
+      if (meta.scripts && meta.scripts.transpile) {
+        transpilable.push(dir);
+      }
     })
   );
-  await Promise.all(
-    transpilable.map(dir => exec(`yarn transpile`, {cwd: `${root}/${dir}`}))
-  );
+  let batch = transpilable;
+  function* group(transpilable) {
+    let list = transpilable;
+    while (list.length) {
+      yield list.slice(0, 30);
+      list = list.slice(30);
+    }
+  }
+  while (batch.length) {
+    const failed = [];
+    for (const g of group(batch)) {
+      await Promise.all(
+        g.map(async dir => {
+          try {
+            await exec(`yarn transpile`, {cwd: `${root}/${dir}`});
+          } catch (e) {
+            failed.push(dir);
+          }
+        })
+      );
+    }
+    if (batch.length === failed.length) {
+      throw new Error(`Can't transpile` + failed.join(', '));
+    }
+    batch = failed;
+  }
 };
 
 async function isFile(filename) {
