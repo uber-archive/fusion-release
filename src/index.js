@@ -1,3 +1,4 @@
+// @flow
 /* eslint-env node */
 const {getPackages, bootstrap} = require('./bootstrap.js');
 

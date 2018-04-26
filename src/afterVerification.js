@@ -1,3 +1,4 @@
+// @flow
 /* eslint-env node */
 /* eslint-disable no-console */
 
@@ -39,7 +40,7 @@ module.exports = async function afterVerification() {
   console.log(`Owner: ${owner}`);
   console.log(`Repo: ${repo}`);
   console.log(`Sha: ${sha}`);
-  console.log(`Targe URL: ${process.env.BUILDKITE_BUILD_URL}`);
+  console.log(`Targe URL: ${String(process.env.BUILDKITE_BUILD_URL)}`);
 
   await octokit.repos.createStatus({
     owner,

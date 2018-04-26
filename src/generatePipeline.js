@@ -1,3 +1,4 @@
+// @flow
 /* eslint-env node */
 const fs = require('fs');
 const shelljs = require('shelljs');
