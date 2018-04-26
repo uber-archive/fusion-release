@@ -6,15 +6,18 @@
   "scripts": {
     "lint": "eslint .",
     "clean": "rm -rf packages",
-    "bootstrap": "node src/index",
+    "bootstrap": "babel-node src/index",
     "verify": "lerna exec --scope fusion-* --scope=browser-tests yarn test",
-    "verify-flow": "node src/checkTypes",
+    "verify-flow": "babel-node src/checkTypes",
     "test": "jest"
   },
   "author": "Kevin Grandon <keving@uber.com>",
   "license": "MIT",
   "dependencies": {
     "@octokit/rest": "^15.2.6",
+    "babel-cli": "^6.26.0",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
     "chalk": "^2.3.1",
     "flow-bin": "^0.70.0",
     "fusion-orchestrate": "^1.0.4",
