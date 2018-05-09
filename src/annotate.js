@@ -64,7 +64,9 @@ async function annotate() {
         }
 
         annotationData.push(
-          `**<a href="https://github.com/${ghPath}/compare/${currentBuildCommit}...${lastBuildCommit}" target="_blank">${ghPath}</a>**\n\n${lastBuildCommit}...${currentBuildCommit}\n`
+          `**<a href="https://github.com/${ghPath}/compare/${currentBuildCommit}...${lastBuildCommit}" target="_blank">${ghPath}</a>**\n\n
+          Parent commit: ${lastBuildCommit}
+          Build commit: ${currentBuildCommit}\n`
         );
       }
     }
