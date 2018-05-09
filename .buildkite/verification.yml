@@ -16,6 +16,14 @@ steps:
   #       run: fusion-release
   #   agents:
   #     queue: workers
+  - name: "annotate"
+    command: "node src/annotate"
+    timeout_in_minutes: 60
+    agents:
+      queue: workers
+    plugins:
+      "docker-compose#v2.0.0":
+        run: "fusion-release"
   - name: "all packages - lint"
     command: "./node_modules/.bin/lerna exec --scope fusion-* --scope=browser-tests yarn lint"
     timeout_in_minutes: 60
