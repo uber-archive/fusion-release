@@ -47,24 +47,36 @@ async function annotate() {
   );
 
   // Annotate build with commit info
-  const annotationData = ['# Commits since last verification build\n'];
+  const annotationData = [];
 
   metadata.data.organization.pipelines.edges[0].node.builds.edges[0].node.metaData.edges.forEach(
     ({node}) => {
       if (node.key && node.key.startsWith('sha-')) {
+        const lastBuildCommit = commitMetadata[node.key];
+        const currentBuildCommit = node.value;
         const ghPath = node.key
           .replace(/^sha-/, '')
           .replace(/fusionjs-/, 'fusionjs/');
+
+        // Only show repo annotation if the commit is different.
+        if (lastBuildCommit === currentBuildCommit) {
+          return;
+        }
+
         annotationData.push(
-          `**<a href="https://github.com/${ghPath}/compare/${node.value}...${
-            commitMetadata[node.key]
-          }" target="_blank">${ghPath}</a>**\n\n${commitMetadata[node.key]}...${
-            node.value
-          }\n`
+          `**<a href="https://github.com/${ghPath}/compare/${currentBuildCommit}...${lastBuildCommit}" target="_blank">${ghPath}</a>**\n\n${lastBuildCommit}...${currentBuildCommit}\n`
         );
       }
     }
   );
+
+  if (annotationData.length > 0) {
+    annotationData.unshift('# Commits since last verification build\n');
+  } else {
+    annotationData.push(
+      '**No new commits found between this build and last verification build.**'
+    );
+  }
 
   console.log('Annotation is?', annotationData);
   await exec(
