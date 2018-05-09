@@ -54,7 +54,7 @@ jest.mock('child_process', () => {
         return callback(null, {
           stdout: JSON.stringify(__graphQlMock__()),
         });
-      } else if (command.startsWith('git log')) {
+      } else if (command.startsWith('git log -n 1')) {
         return callback(null, {
           stdout: __currentCommitMock__(),
         });
@@ -62,6 +62,12 @@ jest.mock('child_process', () => {
         __commandMock__(command);
         return callback(null, {
           stdout: '',
+        });
+      } else if (command.startsWith('git log')) {
+        return callback(null, {
+          stdout: `3e15f75 (HEAD -> master, upstream/master) Commit 1
+2b4a149 Commit 2 (#353)
+2d9c483 Commit 3 (#352)`,
         });
       }
     },
@@ -88,7 +94,7 @@ describe('annotate', () => {
       ])
     );
     await annotate();
-    expect(__commandMock__.mock.calls[0][0]).toContain('No new commits');
+    expect(__commandMock__.mock.calls.shift()[0]).toContain('No new commits');
   });
 
   test('annotates when commits differ', async () => {
@@ -106,10 +112,15 @@ describe('annotate', () => {
       ])
     );
     await annotate();
-    const annotation = __commandMock__.mock.calls[1][0];
+    const annotation = __commandMock__.mock.calls.shift()[0];
     expect(annotation).toContain('Commits since last verification build');
     expect(annotation).toContain(
       'https://github.com/fusionjs/fusion-cli/compare/3e15f758140a7833e3e391cfc24aa2304634b449...dac0a31e8cf66d8d908672c1c3e49037f38ce805'
     );
+    expect(annotation).toContain('Commit 1');
+    expect(annotation).toContain(
+      'https://github.com/fusionjs/fusion-cli/commit/3e15f75'
+    );
+    expect(annotation).toContain('Commit 2');
   });
 });

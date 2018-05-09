@@ -16,6 +16,17 @@ const ignoredRepos = [
   'fusion-plugin-service-worker',
 ];
 
+async function getCommitsLinks(ghPath, currentCommit, lastCommit) {
+  return (await exec(`git log ${currentCommit}..${lastCommit} --oneline`, {
+    cwd: `packages/${ghPath}`,
+  })).stdout
+    .split('\n')
+    .map(commitLine => {
+      const commitSha = commitLine.match(/^([0-9A-Za-z]+)\s+(.*)/)[1];
+      return `* <a href="https://github.com/${ghPath}/commit/${commitSha}" target="_blank">${commitLine}</a>`;
+    });
+}
+
 async function annotate() {
   const commitMetadata = {};
 
@@ -49,28 +60,35 @@ async function annotate() {
   // Annotate build with commit info
   const annotationData = [];
 
-  metadata.data.organization.pipelines.edges[0].node.builds.edges[0].node.metaData.edges.forEach(
-    ({node}) => {
-      if (node.key && node.key.startsWith('sha-')) {
-        const lastBuildCommit = node.value;
-        const currentBuildCommit = commitMetadata[node.key];
-        const ghPath = node.key
-          .replace(/^sha-/, '')
-          .replace(/fusionjs-/, 'fusionjs/');
+  const metadataEdges =
+    metadata.data.organization.pipelines.edges[0].node.builds.edges[0].node
+      .metaData.edges;
+  for (let i = 0; i < metadataEdges.length; i++) {
+    const {node} = metadataEdges[i];
+    if (node.key && node.key.startsWith('sha-')) {
+      const lastBuildCommit = node.value;
+      const currentBuildCommit = commitMetadata[node.key];
+      const ghPath = node.key
+        .replace(/^sha-/, '')
+        .replace(/fusionjs-/, 'fusionjs/');
 
-        // Only show repo annotation if the commit is different.
-        if (lastBuildCommit === currentBuildCommit) {
-          return;
-        }
-
-        annotationData.push(
-          `**<a href="https://github.com/${ghPath}/compare/${currentBuildCommit}...${lastBuildCommit}" target="_blank">${ghPath}</a>**\n\n
-          Parent commit: ${lastBuildCommit}
-          Build commit: ${currentBuildCommit}\n`
-        );
+      // Only show repo annotation if the commit is different.
+      if (lastBuildCommit === currentBuildCommit) {
+        continue;
       }
+
+      const commits = await getCommitsLinks(
+        ghPath,
+        currentBuildCommit,
+        lastBuildCommit
+      );
+
+      annotationData.push(
+        `**<a href="https://github.com/${ghPath}/compare/${currentBuildCommit}...${lastBuildCommit}" target="_blank">${ghPath}</a>**\n\n
+        ${commits.join('\n')}\n`
+      );
     }
-  );
+  }
 
   if (annotationData.length > 0) {
     annotationData.unshift('# Commits since last verification build\n');
