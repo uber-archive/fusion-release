@@ -27,9 +27,9 @@ async function annotate() {
     const root = 'packages';
     const {upstream, name} = repo;
     const dir = `${upstream}/${name}`;
-    const hash = await exec(`git log -n 1 --pretty=format:"%H"`, {
+    const hash = (await exec(`git log -n 1 --pretty=format:"%H"`, {
       cwd: `${root}/${dir}`,
-    });
+    })).stdout;
     const metadataKey = `sha-${dir.replace(/\//g, '-')}`;
     console.log('DEBUG: Hash is: ', metadataKey, hash);
     commitMetadata[metadataKey] = hash;
@@ -37,12 +37,12 @@ async function annotate() {
   });
 
   // Query for last build metadata
-  const metadata = await exec(`curl https://graphql.buildkite.com/v1 \
+  const metadata = (await exec(`curl https://graphql.buildkite.com/v1 \
   -H "Authorization: Bearer ${String(process.env.BUILDKITE_API_TOKEN)}" \
   -d '{
     "query": "${query}",
-    "variables": "{ }"
-  }'`);
+    "variables": {"branch": ["annotate-commit-information"]}
+  }'`)).stdout;
   console.log('metadata is?', commitMetadata);
   console.log('Debug, metadata is?', metadata);
 
