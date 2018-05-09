@@ -17,8 +17,10 @@ const ignoredRepos = [
 ];
 
 async function getCommitsLinks(ghPath, currentCommit, lastCommit) {
+  const cwd = `packages/${ghPath}`;
+  console.log(`Cwd is: ${ghPath}`);
   return (await exec(`git log ${currentCommit}..${lastCommit} --oneline`, {
-    cwd: `packages/${ghPath}`,
+    cwd,
   })).stdout
     .split('\n')
     .map(commitLine => {
