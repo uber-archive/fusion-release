@@ -52,8 +52,8 @@ async function annotate() {
   metadata.data.organization.pipelines.edges[0].node.builds.edges[0].node.metaData.edges.forEach(
     ({node}) => {
       if (node.key && node.key.startsWith('sha-')) {
-        const lastBuildCommit = commitMetadata[node.key];
-        const currentBuildCommit = node.value;
+        const lastBuildCommit = node.value;
+        const currentBuildCommit = commitMetadata[node.key];
         const ghPath = node.key
           .replace(/^sha-/, '')
           .replace(/fusionjs-/, 'fusionjs/');
@@ -87,9 +87,10 @@ async function annotate() {
     )}" --style 'info' --context 'ctx-info'`
   );
 }
+module.exports = annotate;
 
 // Only run on CI
-if (process.env.BUILDKITE) {
+if (require.main === module && process.env.BUILDKITE) {
   annotate();
 } else {
   console.log('Not running in CI, exiting.');
