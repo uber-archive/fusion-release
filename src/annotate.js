@@ -31,22 +31,47 @@ async function annotate() {
       cwd: `${root}/${dir}`,
     })).stdout;
     const metadataKey = `sha-${dir.replace(/\//g, '-')}`;
-    console.log('DEBUG: Hash is: ', metadataKey, hash);
     commitMetadata[metadataKey] = hash;
     await exec(`buildkite-agent meta-data set ${metadataKey} ${hash}`);
   });
 
   // Query for last build metadata
-  const metadata = (await exec(`curl https://graphql.buildkite.com/v1 \
+  const postData = {
+    query: query,
+    variables: {branch: ['annotate-commit-information']},
+  };
+  const metadata = JSON.parse(
+    (await exec(`curl https://graphql.buildkite.com/v1 \
   -H "Authorization: Bearer ${String(process.env.BUILDKITE_API_TOKEN)}" \
-  -d '{
-    "query": "${query}",
-    "variables": {"branch": ["annotate-commit-information"]}
-  }'`)).stdout;
-  console.log('metadata is?', commitMetadata);
-  console.log('Debug, metadata is?', metadata);
+  -d '${JSON.stringify(postData)}'`)).stdout
+  );
 
   // Annotate build with commit info
+  const annotationData = ['# Commits since last verification build\n'];
+
+  metadata.data.organization.pipelines.edges[0].node.builds.edges[0].node.metaData.edges.forEach(
+    ({node}) => {
+      if (node.key && node.key.startsWith('sha-')) {
+        const ghPath = node.key
+          .replace(/^sha-/, '')
+          .replace(/fusionjs-/, 'fusionjs/');
+        annotationData.push(
+          `**<a href="https://github.com/${ghPath}/compare/${node.value}...${
+            commitMetadata[node.key]
+          }" target="_blank">${ghPath}</a>**\n\n${commitMetadata[node.key]}...${
+            node.value
+          }\n`
+        );
+      }
+    }
+  );
+
+  console.log('Annotation is?', annotationData);
+  await exec(
+    `buildkite-agent annotate "${annotationData.join(
+      '\n'
+    )}" --style 'info' --context 'ctx-info'`
+  );
 }
 
 // Only run on CI
