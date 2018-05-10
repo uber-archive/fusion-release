@@ -18,15 +18,20 @@ const ignoredRepos = [
 
 async function getCommitsLinks(ghPath, currentCommit, lastCommit) {
   const cwd = `packages/${ghPath}`;
-  console.log(`Cwd is: ${ghPath}`);
-  return (await exec(`git log ${lastCommit}..${currentCommit} --oneline`, {
-    cwd,
-  })).stdout
-    .split('\n')
-    .map(commitLine => {
-      const commitSha = commitLine.match(/^([0-9A-Za-z]+)\s+(.*)/)[1];
-      return `* <a href="https://github.com/${ghPath}/commit/${commitSha}" target="_blank">${commitLine}</a>`;
-    });
+  console.log(`Cwd is: ${cwd}`);
+  try {
+    return (await exec(`git log ${lastCommit}..${currentCommit} --oneline`, {
+      cwd,
+    })).stdout
+      .split('\n')
+      .map(commitLine => {
+        const commitSha = commitLine.match(/^([0-9A-Za-z]+)\s+(.*)/)[1];
+        return `* <a href="https://github.com/${ghPath}/commit/${commitSha}" target="_blank">${commitLine}</a>`;
+      });
+  } catch (e) {
+    console.log('Error loading commits for range.');
+    return ['Unable to load commits for revision range.'];
+  }
 }
 
 async function annotate() {
