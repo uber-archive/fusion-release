@@ -20,7 +20,7 @@ async function getCommitsLinks(ghPath, currentCommit, lastCommit) {
   const cwd = `packages/${ghPath}`;
   console.log(`Cwd is: ${cwd}`);
   try {
-    return (await exec(`git log ${lastCommit}..${currentCommit} --oneline`, {
+    return (await exec(`git log ${currentCommit}...${lastCommit} --oneline`, {
       cwd,
     })).stdout
       .split('\n')
