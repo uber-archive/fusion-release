@@ -16,7 +16,7 @@ const ignoredRepos = [
   'fusion-plugin-service-worker',
 ];
 
-async function getCommitsLinks(ghPath, currentCommit, lastCommit) {
+async function getCommitsLinks(ghPath, lastCommit, currentCommit) {
   const cwd = `packages/${ghPath}`;
   console.log(`Cwd is: ${cwd}`);
   try {
@@ -86,8 +86,8 @@ async function annotate() {
 
       const commits = await getCommitsLinks(
         ghPath,
-        currentBuildCommit,
-        lastBuildCommit
+        lastBuildCommit,
+        currentBuildCommit
       );
 
       annotationData.push(
