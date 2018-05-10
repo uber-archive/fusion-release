@@ -20,7 +20,7 @@ async function getCommitsLinks(ghPath, currentCommit, lastCommit) {
   const cwd = `packages/${ghPath}`;
   console.log(`Cwd is: ${cwd}`);
   try {
-    return (await exec(`git log ${currentCommit}...${lastCommit} --oneline`, {
+    return (await exec(`git log ${lastCommit}...${currentCommit} --oneline`, {
       cwd,
     })).stdout
       .split('\n')
@@ -91,7 +91,7 @@ async function annotate() {
       );
 
       annotationData.push(
-        `**<a href="https://github.com/${ghPath}/compare/${currentBuildCommit}...${lastBuildCommit}" target="_blank">${ghPath}</a>**\n\n
+        `**<a href="https://github.com/${ghPath}/compare/${lastBuildCommit}...${currentBuildCommit}" target="_blank">${ghPath}</a>**\n\n
 ${commits.join('\n')}\n`
       );
     }
