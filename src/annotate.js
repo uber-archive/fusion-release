@@ -92,7 +92,7 @@ async function annotate() {
 
       annotationData.push(
         `**<a href="https://github.com/${ghPath}/compare/${currentBuildCommit}...${lastBuildCommit}" target="_blank">${ghPath}</a>**\n\n
-        ${commits.join('\n')}\n`
+${commits.join('\n')}\n`
       );
     }
   }
