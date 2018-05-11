@@ -4,11 +4,26 @@
 const proc = require('child_process');
 const util = require('util');
 
+const octokit = require('@octokit/rest')({
+  timeout: 0,
+  requestMedia: 'application/vnd.github.v3+json',
+  headers: {
+    'user-agent': 'octokit/rest.js v1.2.3',
+  },
+});
+
 const withEachRepo = require('fusion-orchestrate/src/utils/withEachRepo.js');
 
 const query = require('./queries/lastCompletedBuild.js');
 
 const exec = util.promisify(proc.exec);
+
+if (process.env.GITHUB_TOKEN) {
+  octokit.authenticate({
+    type: 'token',
+    token: process.env.GITHUB_TOKEN,
+  });
+}
 
 const ignoredRepos = [
   'probot-app-workflow',
@@ -16,29 +31,22 @@ const ignoredRepos = [
   'fusion-plugin-service-worker',
 ];
 
-async function getCommitsLinks(ghPath, lastCommit, currentCommit) {
-  const cwd = `packages/${ghPath}`;
-  console.log(`Cwd is: ${cwd}`);
+async function getCommitsLinks(owner, repo, lastCommit, currentCommit) {
   try {
-    return (await exec(`git log ${lastCommit}...${currentCommit} --oneline`, {
-      cwd,
-    })).stdout
-      .split('\n')
-      .map(commitLine => {
-        const commitSha = commitLine.match(/^([0-9A-Za-z]+)\s+(.*)/)[1];
-        return `* <a href="https://github.com/${ghPath}/commit/${commitSha}" target="_blank">${commitLine}</a>`;
-      });
+    const result = await octokit.repos.compareCommits({
+      owner,
+      repo,
+      base: lastCommit,
+      head: currentCommit,
+    });
+
+    return result.data.commits.map(
+      ({commit, sha}) =>
+        `* <a href="https://github.com/${owner}/${repo}/commit/${sha}" target="_blank">${
+          commit.message.split('\n')[0]
+        }</a>`
+    );
   } catch (e) {
-    console.log(
-      `Error loading commits for: ${cwd} . Range: ${lastCommit}...${currentCommit}`
-    );
-    console.log(
-      `git log is: ${
-        (await exec(`git log --oneline`, {
-          cwd,
-        })).stdout
-      }`
-    );
     return ['Unable to load commits for revision range.'];
   }
 }
@@ -84,9 +92,7 @@ async function annotate() {
     if (node.key && node.key.startsWith('sha-')) {
       const lastBuildCommit = node.value;
       const currentBuildCommit = commitMetadata[node.key];
-      const ghPath = node.key
-        .replace(/^sha-/, '')
-        .replace(/fusionjs-/, 'fusionjs/');
+      const repo = node.key.replace(/^sha-/, '').replace(/fusionjs-/, '');
 
       // Only show repo annotation if the commit is different.
       if (lastBuildCommit === currentBuildCommit) {
@@ -94,13 +100,14 @@ async function annotate() {
       }
 
       const commits = await getCommitsLinks(
-        ghPath,
+        'fusionjs',
+        repo,
         lastBuildCommit,
         currentBuildCommit
       );
 
       annotationData.push(
-        `**<a href="https://github.com/${ghPath}/compare/${lastBuildCommit}...${currentBuildCommit}" target="_blank">${ghPath}</a>**\n\n
+        `**<a href="https://github.com/fusionjs/${repo}/compare/${lastBuildCommit}...${currentBuildCommit}" target="_blank">${repo}</a>**\n\n
 ${commits.join('\n')}\n`
       );
     }

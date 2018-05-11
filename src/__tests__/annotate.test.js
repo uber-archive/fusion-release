@@ -115,12 +115,12 @@ describe('annotate', () => {
     const annotation = __commandMock__.mock.calls.shift()[0];
     expect(annotation).toContain('Commits since last verification build');
     expect(annotation).toContain(
-      'https://github.com/fusionjs/fusion-cli/compare/3e15f758140a7833e3e391cfc24aa2304634b449...dac0a31e8cf66d8d908672c1c3e49037f38ce805'
+      'https://github.com/fusionjs/fusion-cli/compare/dac0a31e8cf66d8d908672c1c3e49037f38ce805...3e15f758140a7833e3e391cfc24aa2304634b449'
     );
-    expect(annotation).toContain('Commit 1');
+    expect(annotation).toContain('Greenkeep build dependencies');
     expect(annotation).toContain(
-      'https://github.com/fusionjs/fusion-cli/commit/3e15f75'
+      'https://github.com/fusionjs/fusion-cli/commit/3e15f758140a7833e3e391cfc24aa2304634b449'
     );
-    expect(annotation).toContain('Commit 2');
+    expect(annotation).toContain('Release v1.5.1');
   });
 });
