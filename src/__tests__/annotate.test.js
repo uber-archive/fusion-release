@@ -63,12 +63,6 @@ jest.mock('child_process', () => {
         return callback(null, {
           stdout: '',
         });
-      } else if (command.startsWith('git log')) {
-        return callback(null, {
-          stdout: `3e15f75 (HEAD -> master, upstream/master) Commit 1
-2b4a149 Commit 2 (#353)
-2d9c483 Commit 3 (#352)`,
-        });
       }
     },
   };
