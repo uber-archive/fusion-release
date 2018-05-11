@@ -29,7 +29,16 @@ async function getCommitsLinks(ghPath, lastCommit, currentCommit) {
         return `* <a href="https://github.com/${ghPath}/commit/${commitSha}" target="_blank">${commitLine}</a>`;
       });
   } catch (e) {
-    console.log('Error loading commits for range.');
+    console.log(
+      `Error loading commits for: ${cwd} . Range: ${lastCommit}...${currentCommit}`
+    );
+    console.log(
+      `git log is: ${
+        (await exec(`git log --oneline`, {
+          cwd,
+        })).stdout
+      }`
+    );
     return ['Unable to load commits for revision range.'];
   }
 }
