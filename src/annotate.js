@@ -73,7 +73,7 @@ async function annotate() {
   // Query for last build metadata
   const postData = {
     query: query,
-    variables: {branch: ['annotate-commit-information']},
+    variables: {branch: ['master']},
   };
   const metadata = JSON.parse(
     (await exec(`curl https://graphql.buildkite.com/v1 \
