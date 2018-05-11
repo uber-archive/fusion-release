@@ -114,7 +114,7 @@ ${commits.join('\n')}\n`
   }
 
   if (annotationData.length > 0) {
-    annotationData.unshift('# Commits since last verification build\n');
+    annotationData.unshift('## Commits since last verification build\n');
   } else {
     annotationData.push(
       '**No new commits found between this build and last verification build.**'
