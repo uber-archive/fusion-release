@@ -32,7 +32,6 @@ module.exports.getPackages = async (
   ];
 
   await exec(`mkdir -p ${root}`);
-
   console.log(`Cloning repositories`);
   const allPackages = [];
   await withEachRepo(async (api, repo) => {
