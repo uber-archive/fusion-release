@@ -120,8 +120,12 @@ module.exports.bootstrap = async (
   // Make a flow-typed directory and pull everything into it.
   await mkdir(`${root}/flow-typed`);
   await mkdir(`${root}/flow-typed/npm`);
-  await exec(
-    `cp -R ${root}/*/*/flow-typed/npm/* ${root}/flow-typed/npm/. && find ${root}/flow-typed`
+  await Promise.all(
+    allPackages.map(async dir => {
+      await exec(
+        `cp -Rf ${root}/${dir}/flow-typed/npm/* ${root}/flow-typed/npm/. && find ${root}/flow-typed`
+      );
+    })
   );
 
   console.log(`Linking local dependencies`);
