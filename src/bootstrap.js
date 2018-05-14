@@ -118,8 +118,12 @@ module.exports.bootstrap = async (
   await writeFile(`${root}/.flowconfig`, flowConfig, 'utf-8');
 
   // Make a flow-typed directory and pull everything into it.
-  await mkdir(`${root}/flow-typed`);
-  await mkdir(`${root}/flow-typed/npm`);
+  try {
+    await mkdir(`${root}/flow-typed`);
+    await mkdir(`${root}/flow-typed/npm`);
+  } catch (e) {
+    console.log('Could not create directory', e);
+  }
   await Promise.all(
     allPackages.map(async dir => {
       try {
@@ -131,7 +135,6 @@ module.exports.bootstrap = async (
       }
     })
   );
-  await exec(`find ${root}/flow-typed`);
 
   console.log(`Linking local dependencies`);
   const transpilable = [];
