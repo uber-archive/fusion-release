@@ -108,6 +108,7 @@ module.exports.bootstrap = async (
 [include]
 
 [libs]
+./fusionjs/fusion-core/flow-typed
 ./fusionjs/fusion-test-utils/flow-typed/tape-cup_v4.x.x.js
 
 [lints]
