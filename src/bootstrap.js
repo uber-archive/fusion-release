@@ -8,6 +8,7 @@ const withEachRepo = require('fusion-orchestrate/src/utils/withEachRepo.js');
 
 const exec = util.promisify(proc.exec);
 const lstat = util.promisify(fs.lstat);
+const mkdir = util.promisify(fs.mkdir);
 const readDir = util.promisify(fs.readdir);
 const readFile = util.promisify(fs.readFile);
 const writeFile = util.promisify(fs.writeFile);
@@ -107,8 +108,6 @@ module.exports.bootstrap = async (
 [include]
 
 [libs]
-./fusionjs/fusion-core/flow.js
-./fusionjs/fusion-core/flow-typed
 ./fusionjs/fusion-test-utils/flow-typed/tape-cup_v4.x.x.js
 
 [lints]
@@ -117,6 +116,13 @@ module.exports.bootstrap = async (
 
 [strict]`;
   await writeFile(`${root}/.flowconfig`, flowConfig, 'utf-8');
+
+  // Make a flow-typed directory and pull everything into it.
+  await mkdir(`${root}/flow-typed`);
+  await mkdir(`${root}/flow-typed/npm`);
+  await exec(
+    `cp -R ${root}/*/*/flow-typed/npm/* ${root}/flow-typed/npm/. && find ${root}/flow-typed`
+  );
 
   console.log(`Linking local dependencies`);
   const transpilable = [];
