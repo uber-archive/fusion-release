@@ -122,11 +122,16 @@ module.exports.bootstrap = async (
   await mkdir(`${root}/flow-typed/npm`);
   await Promise.all(
     allPackages.map(async dir => {
-      await exec(
-        `cp -Rf ${root}/${dir}/flow-typed/npm/* ${root}/flow-typed/npm/. && find ${root}/flow-typed`
-      );
+      try {
+        await exec(
+          `cp -Rf ${root}/${dir}/flow-typed/npm/* ${root}/flow-typed/npm/. || true`
+        );
+      } catch (e) {
+        console.log('Error when copying', e);
+      }
     })
   );
+  await exec(`find ${root}/flow-typed`);
 
   console.log(`Linking local dependencies`);
   const transpilable = [];
