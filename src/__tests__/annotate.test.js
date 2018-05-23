@@ -1,3 +1,11 @@
+/** Copyright (c) 2018 Uber Technologies, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * @flow
+ */
+
 /* eslint-env node */
 /* eslint-env jest */
 
@@ -69,8 +77,11 @@ jest.mock('child_process', () => {
 });
 
 const {
+  // $FlowFixMe
   __commandMock__,
+  // $FlowFixMe
   __currentCommitMock__,
+  // $FlowFixMe
   __graphQlMock__,
 } = require('child_process');
 
