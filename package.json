@@ -4,7 +4,7 @@
   "description": "Validates and releases fusion packages",
   "main": "src/bootstrap.js",
   "scripts": {
-    "lint": "eslint .",
+    "lint": "eslint src/",
     "clean": "rm -rf packages",
     "bootstrap": "babel-node src/index",
     "verify": "lerna exec --scope fusion-* --scope=browser-tests yarn test",
