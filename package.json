@@ -14,19 +14,19 @@
   "author": "Kevin Grandon <keving@uber.com>",
   "license": "MIT",
   "dependencies": {
-    "@octokit/rest": "^15.6.2",
+    "@octokit/rest": "^15.7.0",
     "babel-cli": "^6.26.0",
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "babel-preset-env": "^1.7.0",
     "chalk": "^2.4.1",
-    "flow-bin": "^0.72.0",
+    "flow-bin": "^0.73.0",
     "fusion-orchestrate": "^1.0.4",
     "lerna": "^2.11.0",
     "shelljs": "^0.8.2"
   },
   "devDependencies": {
     "babel-eslint": "8.2.3",
-    "babel-jest": "22.4.4",
+    "babel-jest": "23.0.0",
     "babel-preset-flow": "6.23.0",
     "eslint": "4.19.1",
     "eslint-config-fusion": "2.0.0",
@@ -35,7 +35,7 @@
     "eslint-plugin-import": "2.12.0",
     "eslint-plugin-prettier": "2.6.0",
     "eslint-plugin-react": "7.8.2",
-    "jest-cli": "22.4.4"
+    "jest-cli": "23.0.0"
   },
   "jest": {
     "cache": false,
