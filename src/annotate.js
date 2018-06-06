@@ -81,7 +81,7 @@ async function annotate() {
     const dir = `${upstream}/${name}`;
 
     console.log('Getting hash for ' + repo.name);
-    let hash;
+    let hash, metadataKey;
     try {
       const hashExec = await exec(`git log -n 1 --pretty=format:"%H"`, {
         cwd: `${root}/${dir}`,
@@ -90,12 +90,14 @@ async function annotate() {
       if (hashExec.stderr) {
         console.log('Error getting hash', hashExec.stderr);
       }
-      const metadataKey = `sha-${dir.replace(/\//g, '-')}`;
+      metadataKey = `sha-${dir.replace(/\//g, '-')}`;
       commitMetadata[metadataKey] = hash.stdout;
     } catch (e) {
       console.log('Could not get hash', e);
     }
-    await exec(`buildkite-agent meta-data set ${metadataKey} ${hash}`);
+    if (typeof metadataKey === 'string' && typeof hash === 'string') {
+      await exec(`buildkite-agent meta-data set ${metadataKey} ${hash}`);
+    }
   });
 
   // Query for last build metadata
