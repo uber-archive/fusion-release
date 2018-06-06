@@ -11,6 +11,16 @@
 const proc = require('child_process');
 const util = require('util');
 
+process.on('unhandledRejection', function(reason, p) {
+  console.log(
+    'Possibly Unhandled Rejection at: Promise ',
+    p,
+    ' reason: ',
+    reason
+  );
+  process.exit(1);
+});
+
 const octokit = require('@octokit/rest')({
   timeout: 0,
   requestMedia: 'application/vnd.github.v3+json',
