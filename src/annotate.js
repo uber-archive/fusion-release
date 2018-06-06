@@ -11,6 +11,16 @@
 const proc = require('child_process');
 const util = require('util');
 
+process.on('unhandledRejection', function(reason, p) {
+  console.log(
+    'Possibly Unhandled Rejection at: Promise ',
+    p,
+    ' reason: ',
+    reason
+  );
+  process.exit(1);
+});
+
 const octokit = require('@octokit/rest')({
   timeout: 0,
   requestMedia: 'application/vnd.github.v3+json',
@@ -69,12 +79,25 @@ async function annotate() {
     const root = 'packages';
     const {upstream, name} = repo;
     const dir = `${upstream}/${name}`;
-    const hash = (await exec(`git log -n 1 --pretty=format:"%H"`, {
-      cwd: `${root}/${dir}`,
-    })).stdout;
-    const metadataKey = `sha-${dir.replace(/\//g, '-')}`;
-    commitMetadata[metadataKey] = hash;
-    await exec(`buildkite-agent meta-data set ${metadataKey} ${hash}`);
+
+    console.log('Getting hash for ' + repo.name);
+    let hash, metadataKey;
+    try {
+      const hashExec = await exec(`git log -n 1 --pretty=format:"%H"`, {
+        cwd: `${root}/${dir}`,
+      });
+      hash = hashExec.stdout;
+      if (hashExec.stderr) {
+        console.log('Error getting hash', hashExec.stderr);
+      }
+      metadataKey = `sha-${dir.replace(/\//g, '-')}`;
+      commitMetadata[metadataKey] = hash.stdout;
+    } catch (e) {
+      console.log('Could not get hash', e);
+    }
+    if (typeof metadataKey === 'string' && typeof hash === 'string') {
+      await exec(`buildkite-agent meta-data set ${metadataKey} ${hash}`);
+    }
   });
 
   // Query for last build metadata
