@@ -79,11 +79,22 @@ async function annotate() {
     const root = 'packages';
     const {upstream, name} = repo;
     const dir = `${upstream}/${name}`;
-    const hash = (await exec(`git log -n 1 --pretty=format:"%H"`, {
-      cwd: `${root}/${dir}`,
-    })).stdout;
-    const metadataKey = `sha-${dir.replace(/\//g, '-')}`;
-    commitMetadata[metadataKey] = hash;
+
+    console.log('Getting hash for ' + repo.name);
+    let hash;
+    try {
+      const hashExec = await exec(`git log -n 1 --pretty=format:"%H"`, {
+        cwd: `${root}/${dir}`,
+      });
+      hash = hashExec.stdout;
+      if (hashExec.stderr) {
+        console.log('Error getting hash', hashExec.stderr);
+      }
+      const metadataKey = `sha-${dir.replace(/\//g, '-')}`;
+      commitMetadata[metadataKey] = hash.stdout;
+    } catch (e) {
+      console.log('Could not get hash', e);
+    }
     await exec(`buildkite-agent meta-data set ${metadataKey} ${hash}`);
   });
 
