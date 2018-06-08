@@ -21,7 +21,7 @@ run();
 
 async function run() {
   await rename('.flowconfig', '.flowconfig.tmp');
-  const command = `yarn lerna exec --scope fusion-* --scope=browser-tests yarn flow check`;
+  const command = `yarn lerna exec --scope fusion-* --scope=browser-tests --scope=create-fusion* yarn flow check`;
   const [cmd, ...args] = command.split(' ');
   proc.spawn(cmd, args, {stdio: 'inherit'}).on('close', code => {
     rename('.flowconfig.tmp', '.flowconfig');
