@@ -35,8 +35,6 @@ module.exports.getPackages = async (
   `;
   const ignoredRepos = [
     'probot-app-workflow',
-    'create-fusion-app',
-    'create-fusion-plugin',
     'fusion-release',
     'fusion-plugin-service-worker',
   ];
