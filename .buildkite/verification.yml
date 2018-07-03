@@ -297,6 +297,14 @@ steps:
     plugins:
       "docker-compose#v2.0.0":
         run: "fusion-release"
+  - name: "fusion-plugin-apollo-server test"
+    command: "./node_modules/.bin/lerna exec --scope fusion-plugin-apollo-server yarn test"
+    timeout_in_minutes: 60
+    agents:
+      queue: workers
+    plugins:
+      "docker-compose#v2.0.0":
+        run: "fusion-release"
   - name: "fusion-plugin-font-loader-react test"
     command: "./node_modules/.bin/lerna exec --scope fusion-plugin-font-loader-react yarn test"
     timeout_in_minutes: 60
