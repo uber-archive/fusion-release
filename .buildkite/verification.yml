@@ -1,7 +1,7 @@
 steps:
   - name: ":docker: bootstrap monorepo image"
     plugins:
-      docker-compose#v2.5.0:
+      docker-compose#v2.5.1:
         build: fusion-release
         image-repository: 027047743804.dkr.ecr.us-east-2.amazonaws.com/uber
         no-cache: true
