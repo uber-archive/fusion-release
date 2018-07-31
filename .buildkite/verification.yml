@@ -184,14 +184,6 @@ steps:
     plugins:
       "docker-compose#v2.0.0":
         run: "fusion-release"
-  - name: "fusion-react-async test"
-    command: "./node_modules/.bin/lerna exec --scope fusion-react-async yarn test"
-    timeout_in_minutes: 60
-    agents:
-      queue: workers
-    plugins:
-      "docker-compose#v2.0.0":
-        run: "fusion-release"
   - name: "eslint-config-fusion test"
     command: "./node_modules/.bin/lerna exec --scope eslint-config-fusion yarn test"
     timeout_in_minutes: 60
