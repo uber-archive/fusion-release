@@ -111,6 +111,7 @@ module.exports.bootstrap = async (
     rm -f ${root}/node_modules/devtools-timeline-model/node_modules/chrome-devtools-frontend/protocol.json
   `);
   const flowConfig = `[ignore]
+.*src/fixtures/failure.*
 
 [include]
 
