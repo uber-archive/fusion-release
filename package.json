@@ -36,7 +36,7 @@
     "eslint-plugin-jest": "21.18.0",
     "eslint-plugin-prettier": "2.6.2",
     "eslint-plugin-react": "7.11.0",
-    "jest-cli": "23.4.2"
+    "jest-cli": "23.5.0"
   },
   "jest": {
     "cache": false,
