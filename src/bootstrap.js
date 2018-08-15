@@ -156,6 +156,7 @@ module.exports.bootstrap = async (
             console.log(`Transpiling ${name}`);
             await exec(`yarn transpile`, {cwd: `${root}/node_modules/${name}`});
           } catch (e) {
+            console.log(`Error when transpiling ${name}`, e);
             failed.push(name);
           }
         })

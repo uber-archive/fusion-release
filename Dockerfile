@@ -25,5 +25,7 @@ COPY . .
 
 RUN yarn
 
+RUN yarn global add create-universal-package
+
 RUN ./node_modules/.bin/babel-node src/index.js
 
