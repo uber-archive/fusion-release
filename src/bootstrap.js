@@ -50,7 +50,11 @@ module.exports.bootstrap = async (
       }/master/package.json`
     )).stdout;
     const packageJson = JSON.parse(rawPackageContent);
-    deps.dependencies = {...deps.dependencies, ...packageJson.dependencies};
+    deps.dependencies = {
+      [repo.name]: `fusionjs/${repo.name}`,
+      ...deps.dependencies,
+      ...packageJson.dependencies,
+    };
     deps.devDependencies = {
       ...deps.devDependencies,
       ...packageJson.devDependencies,
@@ -65,7 +69,8 @@ module.exports.bootstrap = async (
   allPackages.forEach(dep => {
     if (deps.devDependencies[dep.name]) {
       deps.devDependencies[dep.name] = `fusionjs/${dep.name}`;
-    } else {
+    }
+    if (deps.dependencies[dep.name]) {
       deps.dependencies[dep.name] = `fusionjs/${dep.name}`;
     }
   });
@@ -124,7 +129,6 @@ module.exports.bootstrap = async (
   const transpilable = [];
   await Promise.all(
     allPackages.map(async ({name}) => {
-      // eslint-disable-next-line import/no-dynamic-require
       const meta = JSON.parse(
         await readFile(`${root}/node_modules/${name}/package.json`)
       );
