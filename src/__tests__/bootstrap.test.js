@@ -21,6 +21,6 @@ describe('bootstrap', () => {
       // Flow config exists
       expect(fs.existsSync(__dirname + '/../../.flowconfig')).toBe(true);
     },
-    10 * 60 * 1000
+    60 * 60 * 1000
   );
 });
