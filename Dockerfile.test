@@ -5,3 +5,5 @@ WORKDIR /fusion-release-test
 COPY package.json yarn.lock /fusion-release-test/
 
 RUN yarn
+
+RUN yarn global add create-universal-package

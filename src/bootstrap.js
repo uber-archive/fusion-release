@@ -14,94 +14,81 @@ const proc = require('child_process');
 const withEachRepo = require('fusion-orchestrate/src/utils/withEachRepo.js');
 
 const exec = util.promisify(proc.exec);
-const lstat = util.promisify(fs.lstat);
 const mkdir = util.promisify(fs.mkdir);
-const readDir = util.promisify(fs.readdir);
 const readFile = util.promisify(fs.readFile);
 const writeFile = util.promisify(fs.writeFile);
 
-module.exports.getPackages = async (
+module.exports.bootstrap = async (
   root: string = 'packages',
   additionalRepos: Array<string> = []
 ) => {
   const options = {cwd: root};
-  const reset = `
-    git reset --hard &&
-    git clean -xdf &&
-    git fetch &&
-    git checkout origin/master &&
-    git branch -D master &&
-    git checkout -b master
-  `;
+
+  const allPackages = [];
+
   const ignoredRepos = [
     'probot-app-workflow',
     'fusion-release',
     'fusion-plugin-service-worker',
   ];
 
-  await exec(`mkdir -p ${root}`);
-  console.log(`Cloning repositories`);
-  const allPackages = [];
+  // Build initial dependencies for all packages.
+  const deps = {
+    dependencies: {},
+    devDependencies: {},
+    peerDependencies: {},
+  };
+  const resolutions = {};
   await withEachRepo(async (api, repo) => {
     if (repo.upstream !== 'fusionjs' || ignoredRepos.includes(repo.name)) {
       return;
     }
-    allPackages.push(`${repo.upstream}/${repo.name}`);
-    const {upstream, name} = repo;
-    const dir = `${upstream}/${name}`;
-    if (!(await isFile(`${root}/${dir}/package.json`))) {
-      const url = `https://github.com/${dir}.git`;
-      await exec(`git clone --depth 1 ${url} ${dir}`, options);
-    } else await exec(reset, {cwd: `${root}/${dir}`});
-  });
+    allPackages.push(repo);
 
-  // Process anything from the ADDITIONAL_REPOS env var
-  if (additionalRepos) {
-    if (additionalRepos && additionalRepos.length) {
-      for (let i = 0; i < additionalRepos.length; i++) {
-        const parts = /([a-z0-9\-_]+)\/([a-z0-9\-_]+)$/i;
-        // $FlowFixMe
-        const [, owner, name] = additionalRepos[i].match(parts);
-        const dir = `${owner}/${name}`;
-        const url = additionalRepos[i];
-        if (!(await isFile(`${root}/${dir}/package.json`))) {
-          await exec(`git clone --depth 1 ${url} ${dir}`, options);
-        } else await exec(reset, {cwd: `${root}/${dir}`});
-        allPackages.push(dir);
-      }
-    }
-  }
-
-  return allPackages;
-};
-
-module.exports.bootstrap = async (
-  allPackages: Array<string>,
-  root: string = 'packages'
-) => {
-  const options = {cwd: root};
-
-  console.log('Installing dependencies');
-  const names = [];
-  const deps = await allPackages.reduce(async (memo, dir) => {
-    // eslint-disable-next-line import/no-dynamic-require
-    const meta = JSON.parse(await readFile(`${root}/${dir}/package.json`));
-    names.push(meta.name);
-    return {
-      ...(await memo),
-      ...(meta.dependencies || {}),
-      ...(meta.devDependencies || {}),
-      ...(meta.peerDependencies || {}),
+    const rawPackageContent = (await exec(
+      `curl https://raw.githubusercontent.com/fusionjs/${
+        repo.name
+      }/master/package.json`
+    )).stdout;
+    const packageJson = JSON.parse(rawPackageContent);
+    resolutions[repo.name] = `fusionjs/${repo.name}`;
+    deps.dependencies = {
+      [repo.name]: `fusionjs/${repo.name}`,
+      ...deps.dependencies,
+      ...packageJson.dependencies,
     };
-  }, {});
-  for (const key in deps) {
-    if (names.indexOf(key) > -1) delete deps[key];
-  }
-  const data = JSON.stringify({
-    name: 'verification',
-    private: true,
-    dependencies: deps,
+    deps.devDependencies = {
+      ...deps.devDependencies,
+      ...packageJson.devDependencies,
+    };
+    deps.peerDependencies = {
+      ...deps.peerDependencies,
+      ...packageJson.peerDependencies,
+    };
   });
+
+  // Override deps for our packages.
+  allPackages.forEach(dep => {
+    if (deps.devDependencies[dep.name]) {
+      deps.devDependencies[dep.name] = `fusionjs/${dep.name}`;
+    }
+    if (deps.dependencies[dep.name]) {
+      deps.dependencies[dep.name] = `fusionjs/${dep.name}`;
+    }
+  });
+
+  const data = JSON.stringify(
+    {
+      name: 'verification',
+      private: true,
+      ...deps,
+      resolutions,
+    },
+    null,
+    '  '
+  );
+
+  await exec(`mkdir -p ${root}`);
   await writeFile(`${root}/package.json`, data, 'utf-8');
   await exec(`yarn install`, options);
 
@@ -134,10 +121,10 @@ module.exports.bootstrap = async (
     console.log('Could not create directory', e);
   }
   await Promise.all(
-    allPackages.map(async dir => {
+    allPackages.map(async ({name}) => {
       try {
         await exec(
-          `cp -Rf ${root}/${dir}/flow-typed/npm/* ${root}/flow-typed/npm/. || true`
+          `cp -Rf ${root}/node_modules/${name}/flow-typed/npm/* ${root}/flow-typed/npm/. || true`
         );
       } catch (e) {
         console.log('Error when copying', e);
@@ -145,45 +132,21 @@ module.exports.bootstrap = async (
     })
   );
 
-  console.log(`Linking local dependencies`);
+  console.log(`Transpiling local dependencies`);
   const transpilable = [];
   await Promise.all(
-    allPackages.map(async dir => {
-      // eslint-disable-next-line import/no-dynamic-require
-      const meta = JSON.parse(await readFile(`${root}/${dir}/package.json`));
+    allPackages.map(async ({name}) => {
+      const meta = JSON.parse(
+        await readFile(`${root}/node_modules/${name}/package.json`)
+      );
       const parts = meta.name.split('/');
       const isNamespaced = parts.length === 2;
-      const name = parts.pop();
       const rest = isNamespaced ? parts[0] : '';
       const cwd = [`${root}/node_modules`, rest].join('/');
       if (isNamespaced) await exec(`mkdir -p ${cwd}`);
-      const rel = isNamespaced ? '../..' : '..';
-      if (!(await isSymlink(`${cwd}/${name}`))) {
-        await exec(`ln -sfn ${rel}/${dir}/ ${name}`, {cwd});
-      }
-
-      const dirs = await readDir(`${root}/node_modules`);
-      await exec(`mkdir -p ${root}/${dir}/node_modules`);
-      for (const d of dirs) {
-        if (d === dir) continue;
-        const opts = {cwd: `${root}/${dir}/node_modules`};
-        if (!(await isSymlink(`${opts.cwd}/${d}`))) {
-          await exec(`ln -sfn ../../../node_modules/${d}/ ${d}`, opts);
-        }
-      }
-
-      if (meta.bin) {
-        for (const key in meta.bin) {
-          if (!(await isSymlink(`${root}/node_modules/.bin/${key}`))) {
-            await exec(`ln -sfn ../../${dir}/${meta.bin[key]} ${key}`, {
-              cwd: `${root}/node_modules/.bin/`,
-            });
-          }
-        }
-      }
 
       if (meta.scripts && meta.scripts.transpile) {
-        transpilable.push(dir);
+        transpilable.push(name);
       }
     })
   );
@@ -199,34 +162,20 @@ module.exports.bootstrap = async (
     const failed = [];
     for (const g of group(batch)) {
       await Promise.all(
-        g.map(async dir => {
+        g.map(async name => {
           try {
-            await exec(`yarn transpile`, {cwd: `${root}/${dir}`});
+            console.log(`Transpiling ${name}`);
+            await exec(`yarn transpile`, {cwd: `${root}/node_modules/${name}`});
           } catch (e) {
-            failed.push(dir);
+            console.log(`Error when transpiling ${name}`, e);
+            failed.push(name);
           }
         })
       );
     }
     if (batch.length === failed.length) {
-      throw new Error(`Can't transpile` + failed.join(', '));
+      throw new Error(`Can't transpile ` + failed.join(', '));
     }
     batch = failed;
   }
 };
-
-async function isFile(filename) {
-  try {
-    return (await lstat(filename)).isFile();
-  } catch (e) {
-    return false;
-  }
-}
-
-async function isSymlink(filename) {
-  try {
-    return (await lstat(filename)).isSymbolicLink();
-  } catch (e) {
-    return false;
-  }
-}
