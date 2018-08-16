@@ -38,6 +38,7 @@ module.exports.bootstrap = async (
     devDependencies: {},
     peerDependencies: {},
   };
+  const resolutions = {};
   await withEachRepo(async (api, repo) => {
     if (repo.upstream !== 'fusionjs' || ignoredRepos.includes(repo.name)) {
       return;
@@ -50,6 +51,7 @@ module.exports.bootstrap = async (
       }/master/package.json`
     )).stdout;
     const packageJson = JSON.parse(rawPackageContent);
+    resolutions[repo.name] = `fusionjs/${repo.name}`;
     deps.dependencies = {
       [repo.name]: `fusionjs/${repo.name}`,
       ...deps.dependencies,
@@ -75,11 +77,16 @@ module.exports.bootstrap = async (
     }
   });
 
-  const data = JSON.stringify({
-    name: 'verification',
-    private: true,
-    ...deps,
-  });
+  const data = JSON.stringify(
+    {
+      name: 'verification',
+      private: true,
+      ...deps,
+      resolutions,
+    },
+    null,
+    '  '
+  );
 
   await exec(`mkdir -p ${root}`);
   await writeFile(`${root}/package.json`, data, 'utf-8');
