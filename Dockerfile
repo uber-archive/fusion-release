@@ -25,5 +25,5 @@ COPY . .
 
 RUN yarn
 
-RUN ./node_modules/.bin/babel-node src/index.js
+RUN ./node_modules/.bin/babel-node legacy/index.js
 
