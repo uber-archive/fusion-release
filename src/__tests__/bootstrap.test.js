@@ -15,7 +15,16 @@ const {bootstrap} = require('../bootstrap');
 
 describe('bootstrap', () => {
   test('builds and installs modules correctly', async () => {
-    const allPackages = ['pub/a', 'pub/b'];
+    const allPackages = [
+      {
+        upstream: 'pub',
+        name: 'a',
+      },
+      {
+        upstream: 'pub',
+        name: 'b',
+      },
+    ];
 
     // The pub/b package should not have `nop` listed.
     const packageBJson = require('./fixture/pub/b/package.json');
@@ -32,7 +41,16 @@ describe('bootstrap', () => {
     ).toBe(true);
   });
   test('builds and installs scoped packages', async () => {
-    const allPackages = ['priv/c', 'priv/d'];
+    const allPackages = [
+      {
+        upstream: 'priv',
+        name: ' a',
+      },
+      {
+        upstream: 'priv',
+        name: 'b',
+      },
+    ];
     await bootstrap(allPackages, 'src/__tests__/fixture');
 
     const output = shelljs.exec('node src/__tests__/fixture/priv/d/index.js');
