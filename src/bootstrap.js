@@ -20,6 +20,11 @@ const readDir = util.promisify(fs.readdir);
 const readFile = util.promisify(fs.readFile);
 const writeFile = util.promisify(fs.writeFile);
 
+type RepoType = {
+  upstream: string,
+  name: string,
+};
+
 module.exports.getPackages = async (
   root: string = 'packages',
   additionalRepos: Array<string> = []
@@ -46,7 +51,7 @@ module.exports.getPackages = async (
     if (repo.upstream !== 'fusionjs' || ignoredRepos.includes(repo.name)) {
       return;
     }
-    allPackages.push(`${repo.upstream}/${repo.name}`);
+    allPackages.push(repo);
     const {upstream, name} = repo;
     const dir = `${upstream}/${name}`;
     if (!(await isFile(`${root}/${dir}/package.json`))) {
@@ -67,7 +72,7 @@ module.exports.getPackages = async (
         if (!(await isFile(`${root}/${dir}/package.json`))) {
           await exec(`git clone --depth 1 ${url} ${dir}`, options);
         } else await exec(reset, {cwd: `${root}/${dir}`});
-        allPackages.push(dir);
+        allPackages.push({upstream: owner, name: dir});
       }
     }
   }
@@ -76,32 +81,60 @@ module.exports.getPackages = async (
 };
 
 module.exports.bootstrap = async (
-  allPackages: Array<string>,
+  allPackages: Array<RepoType>,
   root: string = 'packages'
 ) => {
   const options = {cwd: root};
 
-  console.log('Installing dependencies');
-  const names = [];
-  const deps = await allPackages.reduce(async (memo, dir) => {
-    // eslint-disable-next-line import/no-dynamic-require
-    const meta = JSON.parse(await readFile(`${root}/${dir}/package.json`));
-    names.push(meta.name);
-    return {
-      ...(await memo),
-      ...(meta.dependencies || {}),
-      ...(meta.devDependencies || {}),
-      ...(meta.peerDependencies || {}),
+  // Build initial dependencies for all packages.
+  const deps = {
+    dependencies: {},
+    devDependencies: {},
+    peerDependencies: {},
+  };
+  const resolutions = {};
+  for (let i = 0; i < allPackages.length; i++) {
+    const repo = allPackages[i];
+    const meta = JSON.parse(
+      await readFile(`${root}/${repo.upstream}/${repo.name}/package.json`)
+    );
+    resolutions[repo.name] = `file:${repo.upstream}/${repo.name}`;
+    deps.dependencies = {
+      [repo.name]: `${repo.upstream}/${repo.name}`,
+      ...deps.dependencies,
+      ...meta.dependencies,
     };
-  }, {});
-  for (const key in deps) {
-    if (names.indexOf(key) > -1) delete deps[key];
+    deps.devDependencies = {
+      ...deps.devDependencies,
+      ...meta.devDependencies,
+    };
+    deps.peerDependencies = {
+      ...deps.peerDependencies,
+      ...meta.peerDependencies,
+    };
   }
-  const data = JSON.stringify({
-    name: 'verification',
-    private: true,
-    dependencies: deps,
+
+  // Override deps for our packages.
+  allPackages.forEach(dep => {
+    if (deps.devDependencies[dep.name]) {
+      deps.devDependencies[dep.name] = `file:${dep.upstream}/${dep.name}`;
+    }
+    if (deps.dependencies[dep.name]) {
+      deps.dependencies[dep.name] = `file:${dep.upstream}/${dep.name}`;
+    }
   });
+
+  const data = JSON.stringify(
+    {
+      name: 'verification',
+      private: true,
+      ...deps,
+      resolutions,
+    },
+    null,
+    '  '
+  );
+
   await writeFile(`${root}/package.json`, data, 'utf-8');
   await exec(`yarn install`, options);
 
@@ -134,10 +167,10 @@ module.exports.bootstrap = async (
     console.log('Could not create directory', e);
   }
   await Promise.all(
-    allPackages.map(async dir => {
+    allPackages.map(async ({name}) => {
       try {
         await exec(
-          `cp -Rf ${root}/${dir}/flow-typed/npm/* ${root}/flow-typed/npm/. || true`
+          `cp -Rf ${root}/node_modules/${name}/flow-typed/npm/* ${root}/flow-typed/npm/. || true`
         );
       } catch (e) {
         console.log('Error when copying', e);
@@ -145,45 +178,31 @@ module.exports.bootstrap = async (
     })
   );
 
-  console.log(`Linking local dependencies`);
+  console.log(`Transpiling local dependencies`);
   const transpilable = [];
   await Promise.all(
-    allPackages.map(async dir => {
-      // eslint-disable-next-line import/no-dynamic-require
-      const meta = JSON.parse(await readFile(`${root}/${dir}/package.json`));
+    allPackages.map(async ({name, upstream: dir}) => {
+      const meta = JSON.parse(
+        await readFile(`${root}/node_modules/${name}/package.json`)
+      );
       const parts = meta.name.split('/');
       const isNamespaced = parts.length === 2;
-      const name = parts.pop();
       const rest = isNamespaced ? parts[0] : '';
       const cwd = [`${root}/node_modules`, rest].join('/');
       if (isNamespaced) await exec(`mkdir -p ${cwd}`);
-      const rel = isNamespaced ? '../..' : '..';
-      if (!(await isSymlink(`${cwd}/${name}`))) {
-        await exec(`ln -sfn ${rel}/${dir}/ ${name}`, {cwd});
-      }
 
       const dirs = await readDir(`${root}/node_modules`);
-      await exec(`mkdir -p ${root}/${dir}/node_modules`);
+      await exec(`mkdir -p ${root}/${dir}/${name}/node_modules`);
       for (const d of dirs) {
-        if (d === dir) continue;
-        const opts = {cwd: `${root}/${dir}/node_modules`};
+        if (d === name) continue;
+        const opts = {cwd: `${root}/${dir}/${name}/node_modules`};
         if (!(await isSymlink(`${opts.cwd}/${d}`))) {
           await exec(`ln -sfn ../../../node_modules/${d}/ ${d}`, opts);
         }
       }
 
-      if (meta.bin) {
-        for (const key in meta.bin) {
-          if (!(await isSymlink(`${root}/node_modules/.bin/${key}`))) {
-            await exec(`ln -sfn ../../${dir}/${meta.bin[key]} ${key}`, {
-              cwd: `${root}/node_modules/.bin/`,
-            });
-          }
-        }
-      }
-
       if (meta.scripts && meta.scripts.transpile) {
-        transpilable.push(dir);
+        transpilable.push(name);
       }
     })
   );
@@ -199,17 +218,19 @@ module.exports.bootstrap = async (
     const failed = [];
     for (const g of group(batch)) {
       await Promise.all(
-        g.map(async dir => {
+        g.map(async name => {
           try {
-            await exec(`yarn transpile`, {cwd: `${root}/${dir}`});
+            console.log(`Transpiling ${name}`);
+            await exec(`yarn transpile`, {cwd: `${root}/node_modules/${name}`});
           } catch (e) {
-            failed.push(dir);
+            console.log(`Error when transpiling ${name}`, e);
+            failed.push(name);
           }
         })
       );
     }
     if (batch.length === failed.length) {
-      throw new Error(`Can't transpile` + failed.join(', '));
+      throw new Error(`Can't transpile ` + failed.join(', '));
     }
     batch = failed;
   }
