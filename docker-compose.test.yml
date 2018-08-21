@@ -1,7 +1,7 @@
 version: '2'
 services:
   fusion-release-test:
-    network_mode: "host"
+    network_mode: 'host'
     build:
       context: .
       dockerfile: Dockerfile.test
@@ -11,6 +11,7 @@ services:
       - BUILDKITE_BUILD_ID
       - BUILDKITE_BUILD_NUMBER
       - BUILDKITE_BUILD_URL
+      - BUILDKITE_PIPELINE_SLUG
     volumes:
       - '.:/fusion-release-test'
       - /fusion-release-test/node_modules/
