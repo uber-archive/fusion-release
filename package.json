@@ -19,7 +19,7 @@
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "babel-preset-env": "^1.7.0",
     "chalk": "^2.4.1",
-    "flow-bin": "^0.79.0",
+    "flow-bin": "^0.81.0",
     "fusion-orchestrate": "^1.0.5",
     "lerna": "^3.0.0-rc.0",
     "shelljs": "^0.8.2"
