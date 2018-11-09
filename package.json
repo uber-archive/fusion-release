@@ -2,11 +2,11 @@
   "name": "fusion-release",
   "version": "0.0.6",
   "description": "Validates and releases fusion packages",
-  "main": "src/bootstrap.js",
+  "main": "legacy/bootstrap.js",
   "scripts": {
     "lint": "eslint src/",
     "clean": "rm -rf packages",
-    "bootstrap": "babel-node src/index",
+    "bootstrap": "babel-node legacy/index",
     "verify": "lerna exec --scope fusion-* --scope=browser-tests yarn test",
     "verify-flow": "babel-node src/checkTypes",
     "test": "jest"
