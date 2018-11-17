@@ -14,7 +14,7 @@
   "author": "Kevin Grandon <keving@uber.com>",
   "license": "MIT",
   "dependencies": {
-    "@octokit/rest": "^15.16.1",
+    "@octokit/rest": "^16.0.0",
     "babel-cli": "^6.26.0",
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "babel-preset-env": "^1.7.0",
