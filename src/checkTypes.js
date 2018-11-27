@@ -1,3 +1,11 @@
+/** Copyright (c) 2018 Uber Technologies, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * @flow
+ */
+
 /* eslint-env node */
 /* eslint-disable no-console*/
 
@@ -13,9 +21,9 @@ run();
 
 async function run() {
   await rename('.flowconfig', '.flowconfig.tmp');
-  const command = `yarn lerna exec --scope fusion-* --scope=browser-tests yarn flow check`;
+  const command = `yarn lerna exec --scope fusion-* --scope=browser-tests --scope=create-fusion* yarn flow check`;
   const [cmd, ...args] = command.split(' ');
-  proc.spawn(cmd, args, {stdio: 'inherit'}).on('close', ({code}) => {
+  proc.spawn(cmd, args, {stdio: 'inherit'}).on('close', code => {
     rename('.flowconfig.tmp', '.flowconfig');
     if (code) process.exit(code);
   });

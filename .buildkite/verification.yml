@@ -1,7 +1,7 @@
 steps:
   - name: ":docker: bootstrap monorepo image"
     plugins:
-      docker-compose#v2.0.0:
+      docker-compose#v2.5.1:
         build: fusion-release
         image-repository: 027047743804.dkr.ecr.us-east-2.amazonaws.com/uber
         no-cache: true
@@ -16,8 +16,16 @@ steps:
   #       run: fusion-release
   #   agents:
   #     queue: workers
+  - name: "annotate"
+    command: "node src/annotate"
+    timeout_in_minutes: 60
+    agents:
+      queue: workers
+    plugins:
+      "docker-compose#v2.0.0":
+        run: "fusion-release"
   - name: "all packages - lint"
-    command: "./node_modules/.bin/lerna exec --scope fusion-* --scope=browser-tests yarn lint"
+    command: "./node_modules/.bin/lerna exec --scope fusion-* --scope=browser-tests --scope=create-fusion* yarn lint"
     timeout_in_minutes: 60
     agents:
       queue: workers
@@ -26,6 +34,30 @@ steps:
         run: "fusion-release"
   - name: "all packages - flowtype"
     command: "node src/checkTypes"
+    timeout_in_minutes: 60
+    agents:
+      queue: workers
+    plugins:
+      "docker-compose#v2.0.0":
+        run: "fusion-release"
+  - name: "create-fusion-app test"
+    command: "./node_modules/.bin/lerna exec --scope create-fusion-app yarn test"
+    timeout_in_minutes: 60
+    agents:
+      queue: workers
+    plugins:
+      "docker-compose#v2.0.0":
+        run: "fusion-release"
+  - name: "create-fusion-plugin test"
+    command: "./node_modules/.bin/lerna exec --scope create-fusion-plugin yarn test"
+    timeout_in_minutes: 60
+    agents:
+      queue: workers
+    plugins:
+      "docker-compose#v2.0.0":
+        run: "fusion-release"
+  - name: "fusion-plugin-connected-react-router test"
+    command: "./node_modules/.bin/lerna exec --scope fusion-plugin-connected-react-router yarn test"
     timeout_in_minutes: 60
     agents:
       queue: workers
@@ -160,14 +192,6 @@ steps:
     plugins:
       "docker-compose#v2.0.0":
         run: "fusion-release"
-  - name: "fusion-react-async test"
-    command: "./node_modules/.bin/lerna exec --scope fusion-react-async yarn test"
-    timeout_in_minutes: 60
-    agents:
-      queue: workers
-    plugins:
-      "docker-compose#v2.0.0":
-        run: "fusion-release"
   - name: "eslint-config-fusion test"
     command: "./node_modules/.bin/lerna exec --scope eslint-config-fusion yarn test"
     timeout_in_minutes: 60
@@ -267,6 +291,14 @@ steps:
         run: "fusion-release"
   - name: "fusion-apollo test"
     command: "./node_modules/.bin/lerna exec --scope fusion-apollo yarn test"
+    timeout_in_minutes: 60
+    agents:
+      queue: workers
+    plugins:
+      "docker-compose#v2.0.0":
+        run: "fusion-release"
+  - name: "fusion-plugin-apollo-server test"
+    command: "./node_modules/.bin/lerna exec --scope fusion-plugin-apollo-server yarn test"
     timeout_in_minutes: 60
     agents:
       queue: workers

@@ -1,0 +1,131 @@
+/** Copyright (c) 2018 Uber Technologies, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * @flow
+ */
+
+/* eslint-env node */
+/* eslint-env jest */
+
+const annotate = require('../annotate');
+
+function getBuildkiteMetadataResp(metadataEdges) {
+  return {
+    data: {
+      organization: {
+        pipelines: {
+          edges: [
+            {
+              node: {
+                builds: {
+                  edges: [
+                    {
+                      node: {
+                        metaData: {
+                          edges: metadataEdges,
+                        },
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+          ],
+        },
+      },
+    },
+  };
+}
+
+jest.mock('fusion-orchestrate/src/utils/withEachRepo.js', () => callback => {
+  callback(null, {
+    name: 'fusion-cli',
+    upstream: 'fusionjs',
+  });
+});
+
+jest.mock('child_process', () => {
+  const __commandMock__ = jest.fn();
+  const __graphQlMock__ = jest.fn();
+  const __currentCommitMock__ = jest.fn();
+  return {
+    __commandMock__,
+    __graphQlMock__,
+    __currentCommitMock__,
+    exec: (command, options, callback) => {
+      if (!callback) {
+        callback = options;
+      }
+      if (command.includes('graphql.buildkite')) {
+        return callback(null, {
+          stdout: JSON.stringify(__graphQlMock__()),
+        });
+      } else if (command.startsWith('git log -n 1')) {
+        return callback(null, {
+          stdout: __currentCommitMock__(),
+        });
+      } else if (command.startsWith('buildkite-agent annotate')) {
+        __commandMock__(command);
+        return callback(null, {
+          stdout: '',
+        });
+      }
+    },
+  };
+});
+
+const {
+  // $FlowFixMe
+  __commandMock__,
+  // $FlowFixMe
+  __currentCommitMock__,
+  // $FlowFixMe
+  __graphQlMock__,
+} = require('child_process');
+
+describe('annotate', () => {
+  test('annotates when no commits differ', async () => {
+    __currentCommitMock__.mockReturnValueOnce('TEST-MOCK-COMMIT');
+    __graphQlMock__.mockReturnValueOnce(
+      getBuildkiteMetadataResp([
+        {
+          node: {
+            key: 'sha-fusionjs-fusion-cli',
+            value: 'TEST-MOCK-COMMIT',
+          },
+        },
+      ])
+    );
+    await annotate();
+    expect(__commandMock__.mock.calls.shift()[0]).toContain('No new commits');
+  });
+
+  test('annotates when commits differ', async () => {
+    __currentCommitMock__.mockReturnValueOnce(
+      '3e15f758140a7833e3e391cfc24aa2304634b449'
+    );
+    __graphQlMock__.mockReturnValueOnce(
+      getBuildkiteMetadataResp([
+        {
+          node: {
+            key: 'sha-fusionjs-fusion-cli',
+            value: 'dac0a31e8cf66d8d908672c1c3e49037f38ce805',
+          },
+        },
+      ])
+    );
+    await annotate();
+    const annotation = __commandMock__.mock.calls.shift()[0];
+    expect(annotation).toContain('Commits since last verification build');
+    expect(annotation).toContain(
+      'https://github.com/fusionjs/fusion-cli/compare/dac0a31e8cf66d8d908672c1c3e49037f38ce805...3e15f758140a7833e3e391cfc24aa2304634b449'
+    );
+    expect(annotation).toContain('Greenkeep build dependencies');
+    expect(annotation).toContain(
+      'https://github.com/fusionjs/fusion-cli/commit/3e15f758140a7833e3e391cfc24aa2304634b449'
+    );
+    expect(annotation).toContain('Release v1.5.1');
+  });
+});

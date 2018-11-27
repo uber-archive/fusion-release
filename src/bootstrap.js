@@ -1,3 +1,11 @@
+/** Copyright (c) 2018 Uber Technologies, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * @flow
+ */
+
 /* eslint-env node */
 /* eslint-disable no-console*/
 const fs = require('fs');
@@ -7,13 +15,14 @@ const withEachRepo = require('fusion-orchestrate/src/utils/withEachRepo.js');
 
 const exec = util.promisify(proc.exec);
 const lstat = util.promisify(fs.lstat);
+const mkdir = util.promisify(fs.mkdir);
 const readDir = util.promisify(fs.readdir);
 const readFile = util.promisify(fs.readFile);
 const writeFile = util.promisify(fs.writeFile);
 
 module.exports.getPackages = async (
-  root = 'packages',
-  additionalRepos = []
+  root: string = 'packages',
+  additionalRepos: Array<string> = []
 ) => {
   const options = {cwd: root};
   const reset = `
@@ -31,7 +40,6 @@ module.exports.getPackages = async (
   ];
 
   await exec(`mkdir -p ${root}`);
-
   console.log(`Cloning repositories`);
   const allPackages = [];
   await withEachRepo(async (api, repo) => {
@@ -52,6 +60,7 @@ module.exports.getPackages = async (
     if (additionalRepos && additionalRepos.length) {
       for (let i = 0; i < additionalRepos.length; i++) {
         const parts = /([a-z0-9\-_]+)\/([a-z0-9\-_]+)$/i;
+        // $FlowFixMe
         const [, owner, name] = additionalRepos[i].match(parts);
         const dir = `${owner}/${name}`;
         const url = additionalRepos[i];
@@ -66,7 +75,10 @@ module.exports.getPackages = async (
   return allPackages;
 };
 
-module.exports.bootstrap = async (allPackages, root = 'packages') => {
+module.exports.bootstrap = async (
+  allPackages: Array<string>,
+  root: string = 'packages'
+) => {
   const options = {cwd: root};
 
   console.log('Installing dependencies');
@@ -99,11 +111,11 @@ module.exports.bootstrap = async (allPackages, root = 'packages') => {
     rm -f ${root}/node_modules/devtools-timeline-model/node_modules/chrome-devtools-frontend/protocol.json
   `);
   const flowConfig = `[ignore]
+.*src/fixtures/failure.*
 
 [include]
 
 [libs]
-./fusionjs/fusion-core/flow.js
 ./fusionjs/fusion-core/flow-typed
 ./fusionjs/fusion-test-utils/flow-typed/tape-cup_v4.x.x.js
 
@@ -113,6 +125,25 @@ module.exports.bootstrap = async (allPackages, root = 'packages') => {
 
 [strict]`;
   await writeFile(`${root}/.flowconfig`, flowConfig, 'utf-8');
+
+  // Make a flow-typed directory and pull everything into it.
+  try {
+    await mkdir(`${root}/flow-typed`);
+    await mkdir(`${root}/flow-typed/npm`);
+  } catch (e) {
+    console.log('Could not create directory', e);
+  }
+  await Promise.all(
+    allPackages.map(async dir => {
+      try {
+        await exec(
+          `cp -Rf ${root}/${dir}/flow-typed/npm/* ${root}/flow-typed/npm/. || true`
+        );
+      } catch (e) {
+        console.log('Error when copying', e);
+      }
+    })
+  );
 
   console.log(`Linking local dependencies`);
   const transpilable = [];
@@ -136,7 +167,7 @@ module.exports.bootstrap = async (allPackages, root = 'packages') => {
       for (const d of dirs) {
         if (d === dir) continue;
         const opts = {cwd: `${root}/${dir}/node_modules`};
-        if (!(await isSymlink(`${opts}/${d}`))) {
+        if (!(await isSymlink(`${opts.cwd}/${d}`))) {
           await exec(`ln -sfn ../../../node_modules/${d}/ ${d}`, opts);
         }
       }

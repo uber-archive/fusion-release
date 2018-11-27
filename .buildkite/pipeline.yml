@@ -8,6 +8,14 @@ steps:
     agents:
       queue: builders
   - wait
+  - name: ':flowtype:'
+    command: yarn flow
+    plugins:
+      'docker-compose#v2.0.0':
+        run: fusion-release-test
+        config: docker-compose.test.yml
+    agents:
+      queue: workers
   - name: ':eslint:'
     command: yarn lint
     plugins:
