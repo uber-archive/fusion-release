@@ -37,6 +37,7 @@ module.exports.getPackages = async (
     'probot-app-workflow',
     'fusion-release',
     'fusion-plugin-service-worker',
+    'fusion-plugin-csrf-protection-react',
   ];
 
   await exec(`mkdir -p ${root}`);
