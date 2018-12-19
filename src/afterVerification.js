@@ -26,12 +26,12 @@ octokit.authenticate({
 
 module.exports = async function afterVerification() {
   const statusMetadata = shelljs.exec('buildkite-agent meta-data get "status"');
-  const isPrerelease = shelljs.exec(
-    'buildkite-agent meta-data get "prerelease"'
+  const isNonBlocking = shelljs.exec(
+    'buildkite-agent meta-data get "release-pr-non-blocking"'
   );
 
-  // No need to update statuses for prereleases or when there is no status.
-  if (isPrerelease === 'true' || statusMetadata === '') {
+  // No need to update statuses when verification is tagged as non-blocking or when there is no status.
+  if (isNonBlocking === 'true' || statusMetadata === '') {
     return;
   }
 
@@ -47,7 +47,7 @@ module.exports = async function afterVerification() {
   console.log(`Owner: ${owner}`);
   console.log(`Repo: ${repo}`);
   console.log(`Sha: ${sha}`);
-  console.log(`Targe URL: ${String(process.env.BUILDKITE_BUILD_URL)}`);
+  console.log(`Target URL: ${String(process.env.BUILDKITE_BUILD_URL)}`);
 
   await octokit.repos.createStatus({
     owner,
