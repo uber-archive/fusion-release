@@ -26,12 +26,12 @@ octokit.authenticate({
 
 module.exports = async function afterVerification() {
   const statusMetadata = shelljs.exec('buildkite-agent meta-data get "status"');
-  const isNonBlocking = shelljs.exec(
-    'buildkite-agent meta-data get "release-pr-non-blocking"'
+  const isRelease = shelljs.exec(
+    'buildkite-agent meta-data get "is-release-pr"'
   );
 
-  // No need to update statuses when verification is tagged as non-blocking or when there is no status.
-  if (isNonBlocking === 'true' || statusMetadata === '') {
+  // No need to update statuses when verification is not for a release or when there is no status.
+  if (!isRelease || statusMetadata === '') {
     return;
   }
 
