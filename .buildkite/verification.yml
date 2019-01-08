@@ -256,8 +256,8 @@ steps:
     plugins:
       "docker-compose#v2.0.0":
         run: "fusion-release"
-  - name: "browser-tests test-chrome"
-    command: "./node_modules/.bin/lerna exec --scope browser-tests yarn test-chrome"
+  - name: "browser-tests test-verification"
+    command: "./node_modules/.bin/lerna exec --scope browser-tests yarn test-verification"
     timeout_in_minutes: 60
     agents:
       queue: workers
