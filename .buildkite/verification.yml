@@ -1,5 +1,5 @@
 steps:
-  - name: ":docker: bootstrap monorepo image"
+  - name: ':docker: bootstrap monorepo image'
     plugins:
       docker-compose#v2.5.1:
         build: fusion-release
@@ -16,254 +16,254 @@ steps:
   #       run: fusion-release
   #   agents:
   #     queue: workers
-  - name: "annotate"
-    command: "node src/annotate"
+  - name: 'annotate'
+    command: 'node src/annotate'
     timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
-      "docker-compose#v2.0.0":
-        run: "fusion-release"
-  - name: "all packages - lint"
-    command: "./node_modules/.bin/lerna exec --scope fusion-* --scope=browser-tests --scope=create-fusion* yarn lint"
+      'docker-compose#v2.0.0':
+        run: 'fusion-release'
+  - name: 'all packages - lint'
+    command: './node_modules/.bin/lerna exec --scope fusion-* --scope=browser-tests --scope=create-fusion* yarn lint'
     timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
-      "docker-compose#v2.0.0":
-        run: "fusion-release"
-  - name: "all packages - flowtype"
-    command: "node src/checkTypes"
+      'docker-compose#v2.0.0':
+        run: 'fusion-release'
+  - name: 'all packages - flowtype'
+    command: 'node src/checkTypes'
     timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
-      "docker-compose#v2.0.0":
-        run: "fusion-release"
-  - name: "create-fusion-app test"
-    command: "./node_modules/.bin/lerna exec --scope create-fusion-app yarn test"
+      'docker-compose#v2.0.0':
+        run: 'fusion-release'
+  - name: 'create-fusion-app test'
+    command: './node_modules/.bin/lerna exec --scope create-fusion-app yarn test'
     timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
-      "docker-compose#v2.0.0":
-        run: "fusion-release"
-  - name: "create-fusion-plugin test"
-    command: "./node_modules/.bin/lerna exec --scope create-fusion-plugin yarn test"
+      'docker-compose#v2.0.0':
+        run: 'fusion-release'
+  - name: 'create-fusion-plugin test'
+    command: './node_modules/.bin/lerna exec --scope create-fusion-plugin yarn test'
     timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
-      "docker-compose#v2.0.0":
-        run: "fusion-release"
-  - name: "fusion-plugin-connected-react-router test"
-    command: "./node_modules/.bin/lerna exec --scope fusion-plugin-connected-react-router yarn test"
+      'docker-compose#v2.0.0':
+        run: 'fusion-release'
+  - name: 'fusion-plugin-connected-react-router test'
+    command: './node_modules/.bin/lerna exec --scope fusion-plugin-connected-react-router yarn test'
     timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
-      "docker-compose#v2.0.0":
-        run: "fusion-release"
-  - name: "fusion-plugin-http-handler test"
-    command: "./node_modules/.bin/lerna exec --scope fusion-plugin-http-handler yarn test"
+      'docker-compose#v2.0.0':
+        run: 'fusion-release'
+  - name: 'fusion-plugin-http-handler test'
+    command: './node_modules/.bin/lerna exec --scope fusion-plugin-http-handler yarn test'
     timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
-      "docker-compose#v2.0.0":
-        run: "fusion-release"
-  - name: "fusion-plugin-i18n-react test"
-    command: "./node_modules/.bin/lerna exec --scope fusion-plugin-i18n-react yarn test"
+      'docker-compose#v2.0.0':
+        run: 'fusion-release'
+  - name: 'fusion-plugin-i18n-react test'
+    command: './node_modules/.bin/lerna exec --scope fusion-plugin-i18n-react yarn test'
     timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
-      "docker-compose#v2.0.0":
-        run: "fusion-release"
-  - name: "fusion-plugin-react-helmet-async test"
-    command: "./node_modules/.bin/lerna exec --scope fusion-plugin-react-helmet-async yarn test"
+      'docker-compose#v2.0.0':
+        run: 'fusion-release'
+  - name: 'fusion-plugin-react-helmet-async test'
+    command: './node_modules/.bin/lerna exec --scope fusion-plugin-react-helmet-async yarn test'
     timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
-      "docker-compose#v2.0.0":
-        run: "fusion-release"
-  - name: "fusion-plugin-universal-logger test"
-    command: "./node_modules/.bin/lerna exec --scope fusion-plugin-universal-logger yarn test"
+      'docker-compose#v2.0.0':
+        run: 'fusion-release'
+  - name: 'fusion-plugin-universal-logger test'
+    command: './node_modules/.bin/lerna exec --scope fusion-plugin-universal-logger yarn test'
     timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
-      "docker-compose#v2.0.0":
-        run: "fusion-release"
-  - name: "fusion-plugin-universal-events-react test"
-    command: "./node_modules/.bin/lerna exec --scope fusion-plugin-universal-events-react yarn test"
+      'docker-compose#v2.0.0':
+        run: 'fusion-release'
+  - name: 'fusion-plugin-universal-events-react test'
+    command: './node_modules/.bin/lerna exec --scope fusion-plugin-universal-events-react yarn test'
     timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
-      "docker-compose#v2.0.0":
-        run: "fusion-release"
-  - name: "fusion-plugin-universal-events test"
-    command: "./node_modules/.bin/lerna exec --scope fusion-plugin-universal-events yarn test"
+      'docker-compose#v2.0.0':
+        run: 'fusion-release'
+  - name: 'fusion-plugin-universal-events test'
+    command: './node_modules/.bin/lerna exec --scope fusion-plugin-universal-events yarn test'
     timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
-      "docker-compose#v2.0.0":
-        run: "fusion-release"
-  - name: "fusion-test-utils test"
-    command: "./node_modules/.bin/lerna exec --scope fusion-test-utils yarn test"
+      'docker-compose#v2.0.0':
+        run: 'fusion-release'
+  - name: 'fusion-test-utils test'
+    command: './node_modules/.bin/lerna exec --scope fusion-test-utils yarn test'
     timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
-      "docker-compose#v2.0.0":
-        run: "fusion-release"
-  - name: "fusion-plugin-styletron-react test"
-    command: "./node_modules/.bin/lerna exec --scope fusion-plugin-styletron-react yarn test"
+      'docker-compose#v2.0.0':
+        run: 'fusion-release'
+  - name: 'fusion-plugin-styletron-react test'
+    command: './node_modules/.bin/lerna exec --scope fusion-plugin-styletron-react yarn test'
     timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
-      "docker-compose#v2.0.0":
-        run: "fusion-release"
-  - name: "fusion-plugin-rpc-redux-react test"
-    command: "./node_modules/.bin/lerna exec --scope fusion-plugin-rpc-redux-react yarn test"
+      'docker-compose#v2.0.0':
+        run: 'fusion-release'
+  - name: 'fusion-plugin-rpc-redux-react test'
+    command: './node_modules/.bin/lerna exec --scope fusion-plugin-rpc-redux-react yarn test'
     timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
-      "docker-compose#v2.0.0":
-        run: "fusion-release"
-  - name: "fusion-rpc-redux test"
-    command: "./node_modules/.bin/lerna exec --scope fusion-rpc-redux yarn test"
+      'docker-compose#v2.0.0':
+        run: 'fusion-release'
+  - name: 'fusion-rpc-redux test'
+    command: './node_modules/.bin/lerna exec --scope fusion-rpc-redux yarn test'
     timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
-      "docker-compose#v2.0.0":
-        run: "fusion-release"
-  - name: "fusion-plugin-rpc test"
-    command: "./node_modules/.bin/lerna exec --scope fusion-plugin-rpc yarn test"
+      'docker-compose#v2.0.0':
+        run: 'fusion-release'
+  - name: 'fusion-plugin-rpc test'
+    command: './node_modules/.bin/lerna exec --scope fusion-plugin-rpc yarn test'
     timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
-      "docker-compose#v2.0.0":
-        run: "fusion-release"
-  - name: "fusion-plugin-redux-action-emitter-enhancer test"
-    command: "./node_modules/.bin/lerna exec --scope fusion-plugin-redux-action-emitter-enhancer yarn test"
+      'docker-compose#v2.0.0':
+        run: 'fusion-release'
+  - name: 'fusion-plugin-redux-action-emitter-enhancer test'
+    command: './node_modules/.bin/lerna exec --scope fusion-plugin-redux-action-emitter-enhancer yarn test'
     timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
-      "docker-compose#v2.0.0":
-        run: "fusion-release"
-  - name: "fusion-plugin-react-router test"
-    command: "./node_modules/.bin/lerna exec --scope fusion-plugin-react-router yarn test"
+      'docker-compose#v2.0.0':
+        run: 'fusion-release'
+  - name: 'fusion-plugin-react-router test'
+    command: './node_modules/.bin/lerna exec --scope fusion-plugin-react-router yarn test'
     timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
-      "docker-compose#v2.0.0":
-        run: "fusion-release"
-  - name: "fusion-plugin-react-redux test"
-    command: "./node_modules/.bin/lerna exec --scope fusion-plugin-react-redux yarn test"
+      'docker-compose#v2.0.0':
+        run: 'fusion-release'
+  - name: 'fusion-plugin-react-redux test'
+    command: './node_modules/.bin/lerna exec --scope fusion-plugin-react-redux yarn test'
     timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
-      "docker-compose#v2.0.0":
-        run: "fusion-release"
-  - name: "fusion-react test"
-    command: "./node_modules/.bin/lerna exec --scope fusion-react yarn test"
+      'docker-compose#v2.0.0':
+        run: 'fusion-release'
+  - name: 'fusion-react test'
+    command: './node_modules/.bin/lerna exec --scope fusion-react yarn test'
     timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
-      "docker-compose#v2.0.0":
-        run: "fusion-release"
-  - name: "fusion-plugin-node-performance-emitter test"
-    command: "./node_modules/.bin/lerna exec --scope fusion-plugin-node-performance-emitter yarn test"
+      'docker-compose#v2.0.0':
+        run: 'fusion-release'
+  - name: 'fusion-plugin-node-performance-emitter test'
+    command: './node_modules/.bin/lerna exec --scope fusion-plugin-node-performance-emitter yarn test'
     timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
-      "docker-compose#v2.0.0":
-        run: "fusion-release"
-  - name: "eslint-config-fusion test"
-    command: "./node_modules/.bin/lerna exec --scope eslint-config-fusion yarn test"
+      'docker-compose#v2.0.0':
+        run: 'fusion-release'
+  - name: 'eslint-config-fusion test'
+    command: './node_modules/.bin/lerna exec --scope eslint-config-fusion yarn test'
     timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
-      "docker-compose#v2.0.0":
-        run: "fusion-release"
-  - name: "fusion-plugin-i18n test"
-    command: "./node_modules/.bin/lerna exec --scope fusion-plugin-i18n yarn test"
+      'docker-compose#v2.0.0':
+        run: 'fusion-release'
+  - name: 'fusion-plugin-i18n test'
+    command: './node_modules/.bin/lerna exec --scope fusion-plugin-i18n yarn test'
     timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
-      "docker-compose#v2.0.0":
-        run: "fusion-release"
-  - name: "fusion-plugin-error-handling test"
-    command: "./node_modules/.bin/lerna exec --scope fusion-plugin-error-handling yarn test"
+      'docker-compose#v2.0.0':
+        run: 'fusion-release'
+  - name: 'fusion-plugin-error-handling test'
+    command: './node_modules/.bin/lerna exec --scope fusion-plugin-error-handling yarn test'
     timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
-      "docker-compose#v2.0.0":
-        run: "fusion-release"
-  - name: "fusion-plugin-jwt test"
-    command: "./node_modules/.bin/lerna exec --scope fusion-plugin-jwt yarn test"
+      'docker-compose#v2.0.0':
+        run: 'fusion-release'
+  - name: 'fusion-plugin-jwt test'
+    command: './node_modules/.bin/lerna exec --scope fusion-plugin-jwt yarn test'
     timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
-      "docker-compose#v2.0.0":
-        run: "fusion-release"
-  - name: "fusion-plugin-csrf-protection test"
-    command: "./node_modules/.bin/lerna exec --scope fusion-plugin-csrf-protection yarn test"
+      'docker-compose#v2.0.0':
+        run: 'fusion-release'
+  - name: 'fusion-plugin-csrf-protection test'
+    command: './node_modules/.bin/lerna exec --scope fusion-plugin-csrf-protection yarn test'
     timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
-      "docker-compose#v2.0.0":
-        run: "fusion-release"
-  - name: "fusion-plugin-browser-performance-emitter test"
-    command: "./node_modules/.bin/lerna exec --scope fusion-plugin-browser-performance-emitter yarn test"
+      'docker-compose#v2.0.0':
+        run: 'fusion-release'
+  - name: 'fusion-plugin-browser-performance-emitter test'
+    command: './node_modules/.bin/lerna exec --scope fusion-plugin-browser-performance-emitter yarn test'
     timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
-      "docker-compose#v2.0.0":
-        run: "fusion-release"
-  - name: "fusion-core test"
-    command: "./node_modules/.bin/lerna exec --scope fusion-core yarn test"
+      'docker-compose#v2.0.0':
+        run: 'fusion-release'
+  - name: 'fusion-core test'
+    command: './node_modules/.bin/lerna exec --scope fusion-core yarn test'
     timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
-      "docker-compose#v2.0.0":
-        run: "fusion-release"
-  - name: "fusion-cli test"
-    command: "./node_modules/.bin/lerna exec --scope fusion-cli yarn test"
+      'docker-compose#v2.0.0':
+        run: 'fusion-release'
+  - name: 'fusion-cli test'
+    command: './node_modules/.bin/lerna exec --scope fusion-cli yarn test'
     timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
-      "docker-compose#v2.0.0":
-        run: "fusion-release"
-  - name: "browser-tests test-chrome"
-    command: "./node_modules/.bin/lerna exec --scope browser-tests yarn test-chrome"
+      'docker-compose#v2.0.0':
+        run: 'fusion-release'
+  - name: 'browser-tests test-chrome'
+    command: './node_modules/.bin/lerna exec --scope browser-tests yarn test-chrome'
     timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
-      "docker-compose#v2.0.0":
-        run: "fusion-release"
+      'docker-compose#v2.0.0':
+        run: 'fusion-release'
   # Disabled because Firefox is currently not installed in the browser-tests image.
   # - name: "browser-tests test-firefox"
   #   command: "./node_modules/.bin/lerna exec --scope browser-tests yarn test-firefox"
@@ -273,62 +273,64 @@ steps:
   #   plugins:
   #     "docker-compose#v2.0.0":
   #       run: "fusion-release"
-  - name: "fusion-apollo-universal-client test"
-    command: "./node_modules/.bin/lerna exec --scope fusion-apollo-universal-client yarn test"
+  - name: 'fusion-apollo-universal-client test'
+    # Temporarily only run node env tests.
+    # There are some symlink issues resolving javascript files with the current monorepo construction.
+    command: './node_modules/.bin/lerna exec --scope fusion-apollo-universal-client yarn test --env node'
     timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
-      "docker-compose#v2.0.0":
-        run: "fusion-release"
-  - name: "fusion-apollo test"
-    command: "./node_modules/.bin/lerna exec --scope fusion-apollo yarn test"
+      'docker-compose#v2.0.0':
+        run: 'fusion-release'
+  - name: 'fusion-apollo test'
+    command: './node_modules/.bin/lerna exec --scope fusion-apollo yarn test'
     timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
-      "docker-compose#v2.0.0":
-        run: "fusion-release"
-  - name: "fusion-plugin-apollo-server test"
-    command: "./node_modules/.bin/lerna exec --scope fusion-plugin-apollo-server yarn test"
+      'docker-compose#v2.0.0':
+        run: 'fusion-release'
+  - name: 'fusion-plugin-apollo-server test'
+    command: './node_modules/.bin/lerna exec --scope fusion-plugin-apollo-server yarn test'
     timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
-      "docker-compose#v2.0.0":
-        run: "fusion-release"
-  - name: "fusion-plugin-font-loader-react test"
-    command: "./node_modules/.bin/lerna exec --scope fusion-plugin-font-loader-react yarn test"
+      'docker-compose#v2.0.0':
+        run: 'fusion-release'
+  - name: 'fusion-plugin-font-loader-react test'
+    command: './node_modules/.bin/lerna exec --scope fusion-plugin-font-loader-react yarn test'
     timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
-      "docker-compose#v2.0.0":
-        run: "fusion-release"
-  - name: "fusion-scaffolder test"
-    command: "./node_modules/.bin/lerna exec --scope fusion-scaffolder yarn test"
+      'docker-compose#v2.0.0':
+        run: 'fusion-release'
+  - name: 'fusion-scaffolder test'
+    command: './node_modules/.bin/lerna exec --scope fusion-scaffolder yarn test'
     timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
-      "docker-compose#v2.0.0":
-        run: "fusion-release"
-  - name: "fusion-tokens test"
-    command: "./node_modules/.bin/lerna exec --scope fusion-tokens yarn test"
+      'docker-compose#v2.0.0':
+        run: 'fusion-release'
+  - name: 'fusion-tokens test'
+    command: './node_modules/.bin/lerna exec --scope fusion-tokens yarn test'
     timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
-      "docker-compose#v2.0.0":
-        run: "fusion-release"
+      'docker-compose#v2.0.0':
+        run: 'fusion-release'
   - wait: ~
     continue_on_failure: true
-  - name: "Update Github status"
-    command: "bin/afterVerification"
+  - name: 'Update Github status'
+    command: 'bin/afterVerification'
     branches: master
     timeout_in_minutes: 60
     agents:
       queue: workers
     plugins:
-      "docker-compose#v2.0.0":
-        run: "fusion-release"
+      'docker-compose#v2.0.0':
+        run: 'fusion-release'
