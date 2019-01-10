@@ -1,7 +1,7 @@
 steps:
   - name: ':docker: bootstrap monorepo image'
     plugins:
-      docker-compose#v2.5.1:
+      docker-compose#v2.6.0:
         build: fusion-release
         image-repository: 027047743804.dkr.ecr.us-east-2.amazonaws.com/uber
         no-cache: true
@@ -256,23 +256,6 @@ steps:
     plugins:
       'docker-compose#v2.0.0':
         run: 'fusion-release'
-  - name: 'browser-tests test-chrome'
-    command: './node_modules/.bin/lerna exec --scope browser-tests yarn test-chrome'
-    timeout_in_minutes: 60
-    agents:
-      queue: workers
-    plugins:
-      'docker-compose#v2.0.0':
-        run: 'fusion-release'
-  # Disabled because Firefox is currently not installed in the browser-tests image.
-  # - name: "browser-tests test-firefox"
-  #   command: "./node_modules/.bin/lerna exec --scope browser-tests yarn test-firefox"
-  #   timeout_in_minutes: 60
-  #   agents:
-  #     queue: workers
-  #   plugins:
-  #     "docker-compose#v2.0.0":
-  #       run: "fusion-release"
   - name: 'fusion-apollo-universal-client test'
     # Temporarily only run node env tests.
     # There are some symlink issues resolving javascript files with the current monorepo construction.
@@ -283,6 +266,7 @@ steps:
     plugins:
       'docker-compose#v2.0.0':
         run: 'fusion-release'
+
   - name: 'fusion-apollo test'
     command: './node_modules/.bin/lerna exec --scope fusion-apollo yarn test'
     timeout_in_minutes: 60
