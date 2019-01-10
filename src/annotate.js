@@ -64,6 +64,7 @@ async function annotate() {
 
   // Build a map of repos and set metadata
   await withEachRepo(async (api, repo) => {
+    console.log('Processing repo ', repo.name);
     if (repo.upstream !== 'fusionjs' || ignoredRepos.includes(repo.name)) {
       return;
     }
