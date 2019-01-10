@@ -276,7 +276,7 @@ steps:
   - name: 'fusion-apollo-universal-client test'
     # Temporarily only run node env tests.
     # There are some symlink issues resolving javascript files with the current monorepo construction.
-    command: './node_modules/.bin/lerna exec --scope fusion-apollo-universal-client yarn test --env node'
+    command: './node_modules/.bin/lerna exec --scope fusion-apollo-universal-client yarn test -- --env node'
     timeout_in_minutes: 60
     agents:
       queue: workers
