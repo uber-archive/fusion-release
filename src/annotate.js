@@ -36,6 +36,7 @@ const ignoredRepos = [
   'probot-app-workflow',
   'fusion-release',
   'fusion-plugin-service-worker',
+  'fusion-plugin-csrf-protection-react',
 ];
 
 async function getCommitsLinks(owner, repo, lastCommit, currentCommit) {
@@ -74,8 +75,12 @@ async function annotate() {
     })).stdout;
     const metadataKey = `sha-${dir.replace(/\//g, '-')}`;
     commitMetadata[metadataKey] = hash;
-    await exec(`buildkite-agent meta-data set ${metadataKey} ${hash}`);
+    const metadataCmd = `buildkite-agent meta-data set ${metadataKey} ${hash}`;
+    console.log('Running : ', metadataCmd);
+    await exec(metadataCmd);
   });
+
+  console.log('Created commit metadata', commitMetadata);
 
   // Query for last build metadata
   const postData = {
@@ -87,6 +92,8 @@ async function annotate() {
   -H "Authorization: Bearer ${String(process.env.BUILDKITE_API_TOKEN)}" \
   -d '${JSON.stringify(postData)}'`)).stdout
   );
+
+  console.log('Got metadata from last master build', commitMetadata);
 
   // Annotate build with commit info
   const annotationData = [];
