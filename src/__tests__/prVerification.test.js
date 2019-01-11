@@ -16,8 +16,8 @@ jest.mock('shelljs', () => {
   return {
     __commandMock__,
     exec: command => {
-      if (command.includes('"prerelease"')) {
-        return false;
+      if (command.includes('"is-release-pr"')) {
+        return true;
       } else if (command.includes('"release-pr-head-sha"')) {
         return 'TEST_SHA';
       } else if (command.includes('"release-pr-base-repo-full-name"')) {
