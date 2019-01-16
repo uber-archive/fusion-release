@@ -113,9 +113,6 @@ module.exports.bootstrap = async (
   `);
   const flowConfig = `[ignore]
 .*src/fixtures/failure.*
-# Temporarily ignore graphql js libs until fixes in graphql@14.0.3 are released
-# Corresponding reference in flow-typed/npm should be removed along with this.
-.*node_modules/graphql/.*
 
 [include]
 
@@ -137,9 +134,6 @@ module.exports.bootstrap = async (
   } catch (e) {
     console.log('Could not create directory', e);
   }
-
-  await exec(`cp -Rf flow-typed/npm/* ${root}/flow-typed/npm/. || true`);
-
   await Promise.all(
     allPackages.map(async dir => {
       try {
