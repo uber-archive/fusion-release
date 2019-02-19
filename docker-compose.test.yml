@@ -1,7 +1,6 @@
 version: '2'
 services:
   fusion-release-test:
-    network_mode: 'host'
     build:
       context: .
       dockerfile: Dockerfile.test
